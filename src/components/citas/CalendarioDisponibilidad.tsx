@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, XCircle } from 'lucide-react';
-import { Button } from '../ui/button';
-import { motion } from 'motion/react';
-import { toast } from 'sonner@2.0.3';
+import { useState } from "react";
+import { fechaAString } from "../../utils/dateHelpers";
+import { ChevronLeft, ChevronRight, XCircle } from "lucide-react";
+import { Button } from "../ui/button";
+import { motion } from "motion/react";
+import { toast } from "sonner";
 
 interface Empleado {
   id: string;
@@ -25,8 +26,21 @@ interface CalendarioDisponibilidadProps {
   border: string;
 }
 
-const DIAS_SEMANA = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const DIAS_SEMANA = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+const MESES = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
+];
 
 export default function CalendarioDisponibilidad({
   empleado,
@@ -35,9 +49,13 @@ export default function CalendarioDisponibilidad({
   textPrimary,
   textSecondary,
   bgCard,
-  border
+  border,
 }: CalendarioDisponibilidadProps) {
   const [fechaCalendario, setFechaCalendario] = useState(new Date());
+  // Modo de selección: true = seleccionar DÍAS NO DISPONIBLES (por defecto)
+  // Si se desactiva, el calendario mostrará/seleccionará las fechas DISPONIBLES.
+  const [seleccionarNoDisponibles, setSeleccionarNoDisponibles] =
+    useState<boolean>(true);
 
   const getDiasDelMes = (fecha: Date) => {
     const año = fecha.getFullYear();
@@ -48,59 +66,116 @@ export default function CalendarioDisponibilidad({
     const primerDiaSemana = primerDia.getDay();
 
     const dias: (Date | null)[] = [];
-    
+
     for (let i = 0; i < primerDiaSemana; i++) {
       dias.push(null);
     }
-    
+
     for (let i = 1; i <= diasEnMes; i++) {
       dias.push(new Date(año, mes, i));
     }
-    
+
     return dias;
   };
 
   const esDiaNoDisponible = (fecha: Date) => {
-    const fechaISO = fecha.toISOString().split('T')[0];
+    const fechaISO = fechaAString(fecha);
     return empleado.diasNoDisponibles?.includes(fechaISO) || false;
   };
 
   return (
     <div className={`${bgCard} rounded-xl p-6 border ${border} shadow-sm`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className={`${textPrimary}`} style={{ fontSize: '18px', fontWeight: 700 }}>
+        <h3
+          className={`${textPrimary}`}
+          style={{ fontSize: "18px", fontWeight: 700 }}
+        >
           Días No Disponibles - {empleado.nombre}
         </h3>
         <div className="flex items-center gap-3">
           <Button
-            onClick={() => setFechaCalendario(new Date(fechaCalendario.getFullYear(), fechaCalendario.getMonth() - 1, 1))}
-            className={`h-9 w-9 p-0 rounded-lg ${isDark ? 'bg-[#161b22] hover:bg-[#1f6feb1a] text-white' : 'bg-gray-200 hover:bg-gray-300 text-[#3D4756]'}`}
+            onClick={() =>
+              setFechaCalendario(
+                new Date(
+                  fechaCalendario.getFullYear(),
+                  fechaCalendario.getMonth() - 1,
+                  1
+                )
+              )
+            }
+            className={`h-9 w-9 p-0 rounded-lg ${
+              isDark
+                ? "bg-[#161b22] hover:bg-[#1f6feb1a] text-white"
+                : "bg-gray-200 hover:bg-gray-300 text-[#3D4756]"
+            }`}
           >
             <ChevronLeft className="w-5 h-5" />
           </Button>
-          <span className={textPrimary} style={{ fontSize: '15px', fontWeight: 600, minWidth: '150px', textAlign: 'center' }}>
+          <span
+            className={textPrimary}
+            style={{
+              fontSize: "15px",
+              fontWeight: 600,
+              minWidth: "150px",
+              textAlign: "center",
+            }}
+          >
             {MESES[fechaCalendario.getMonth()]} {fechaCalendario.getFullYear()}
           </span>
           <Button
-            onClick={() => setFechaCalendario(new Date(fechaCalendario.getFullYear(), fechaCalendario.getMonth() + 1, 1))}
-            className={`h-9 w-9 p-0 rounded-lg ${isDark ? 'bg-[#161b22] hover:bg-[#1f6feb1a] text-white' : 'bg-gray-200 hover:bg-gray-300 text-[#3D4756]'}`}
+            onClick={() =>
+              setFechaCalendario(
+                new Date(
+                  fechaCalendario.getFullYear(),
+                  fechaCalendario.getMonth() + 1,
+                  1
+                )
+              )
+            }
+            className={`h-9 w-9 p-0 rounded-lg ${
+              isDark
+                ? "bg-[#161b22] hover:bg-[#1f6feb1a] text-white"
+                : "bg-gray-200 hover:bg-gray-300 text-[#3D4756]"
+            }`}
           >
             <ChevronRight className="w-5 h-5" />
           </Button>
         </div>
       </div>
 
-      <p className={`${textSecondary} mb-4`} style={{ fontSize: '13px' }}>
-        Haz clic en un día para marcarlo como no disponible. Los días marcados aparecerán en rojo con una X.
-      </p>
+      <div className="flex items-center justify-between mb-4">
+        <p className={`${textSecondary}`} style={{ fontSize: "13px" }}>
+          Haz clic en un día para alternar su estado.
+        </p>
+        <div className="flex items-center gap-2">
+          <label className={`${textSecondary} text-sm`}>Seleccionar:</label>
+          <button
+            onClick={() =>
+              setSeleccionarNoDisponibles(!seleccionarNoDisponibles)
+            }
+            className={`px-3 py-1 rounded-lg text-sm font-semibold transition-colors duration-200 ${
+              seleccionarNoDisponibles
+                ? "bg-red-500 text-white"
+                : "bg-green-500 text-white"
+            }`}
+          >
+            {seleccionarNoDisponibles
+              ? "Días No Disponibles"
+              : "Días Disponibles"}
+          </button>
+        </div>
+      </div>
 
       {/* Calendario mensual */}
       <div>
         {/* Encabezado días de la semana */}
         <div className="grid grid-cols-7 gap-2 mb-3">
-          {DIAS_SEMANA.map(dia => (
+          {DIAS_SEMANA.map((dia) => (
             <div key={dia} className="text-center py-2">
-              <span className={textSecondary} style={{ fontSize: '12px', fontWeight: 600 }}>
+              <span
+                className={textSecondary}
+                style={{ fontSize: "12px", fontWeight: 600 }}
+              >
                 {dia}
               </span>
             </div>
@@ -117,34 +192,61 @@ export default function CalendarioDisponibilidad({
             const esNoDisponible = esDiaNoDisponible(dia);
             const esHoy = dia.toDateString() === new Date().toDateString();
 
+            // Dependiendo del modo, consideramos seleccionado el día NO disponible
+            // (modo por defecto) o el día disponible (modo alterno).
+            const esSeleccionado = seleccionarNoDisponibles
+              ? esNoDisponible
+              : !esNoDisponible;
+
             return (
               <motion.div
                 key={dia.toISOString()}
                 whileHover={{ scale: 1.05 }}
                 onClick={() => onToggleDia(dia)}
                 className={`aspect-square rounded-xl p-2 cursor-pointer transition-all duration-200 flex flex-col items-center justify-center ${
-                  esNoDisponible
-                    ? 'bg-red-500 text-white shadow-md'
+                  esSeleccionado
+                    ? seleccionarNoDisponibles
+                      ? "bg-red-500 text-white shadow-md"
+                      : "bg-green-500 text-white shadow-md"
                     : esHoy
-                    ? `${isDark ? 'bg-[#1f6feb1a]' : 'bg-blue-50'} border-2 border-[#14B8A6]`
-                    : `${isDark ? 'hover:bg-[#161b22]' : 'hover:bg-gray-100'} border ${border}`
+                    ? `${
+                        isDark ? "bg-[#1f6feb1a]" : "bg-blue-50"
+                      } border-2 border-[#14B8A6]`
+                    : `${
+                        isDark ? "hover:bg-[#161b22]" : "hover:bg-gray-100"
+                      } border ${border}`
                 }`}
               >
-                <span style={{ fontSize: '13px', fontWeight: esHoy || esNoDisponible ? 700 : 500 }}>
+                <span
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: esHoy || esSeleccionado ? 700 : 500,
+                  }}
+                >
                   {dia.getDate()}
                 </span>
-                {esNoDisponible && (
-                  <XCircle className="w-4 h-4 mt-1" />
-                )}
+                {esSeleccionado &&
+                  (seleccionarNoDisponibles ? (
+                    <XCircle className="w-4 h-4 mt-1" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 mt-1" />
+                  ))}
               </motion.div>
             );
           })}
         </div>
       </div>
 
-      <div className={`mt-4 p-3 rounded-xl ${isDark ? 'bg-[#161b22]' : 'bg-gray-50'}`}>
-        <p className={textSecondary} style={{ fontSize: '12px' }}>
-          <strong>Días marcados como no disponibles:</strong> {empleado.diasNoDisponibles.length === 0 ? 'Ninguno' : empleado.diasNoDisponibles.length}
+      <div
+        className={`mt-4 p-3 rounded-xl ${
+          isDark ? "bg-[#161b22]" : "bg-gray-50"
+        }`}
+      >
+        <p className={textSecondary} style={{ fontSize: "12px" }}>
+          <strong>Días marcados como no disponibles:</strong>{" "}
+          {empleado.diasNoDisponibles.length === 0
+            ? "Ninguno"
+            : empleado.diasNoDisponibles.length}
         </p>
       </div>
     </div>

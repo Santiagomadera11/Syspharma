@@ -1,23 +1,51 @@
-import { useState, useMemo, useEffect } from 'react';
-import { Plus, Search, Eye, Trash2, Edit, Calendar, ChevronLeft, ChevronRight, ShoppingCart, Package, Minus } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
-} from '../components/ui/alert-dialog';
-import { useDarkMode } from '../hooks/useDarkMode';
-import { useCompras, useProductos, useProveedores, useCategorias } from '../hooks/useEntities';
-import { motion, AnimatePresence } from 'motion/react';
+import { useState, useMemo, useEffect } from "react";
+import {
+  Plus,
+  Search,
+  Eye,
+  Trash2,
+  Edit,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  ShoppingCart,
+  Package,
+  Minus,
+} from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../components/ui/alert-dialog";
+import { useDarkMode } from "../hooks/useDarkMode";
+import {
+  useCompras,
+  useProductos,
+  useProveedores,
+  useCategorias,
+} from "../hooks/useEntities";
+import { motion, AnimatePresence } from "motion/react";
 
 interface ComprasProps {
   user: any;
@@ -31,16 +59,34 @@ interface ProductoCarrito {
 }
 
 export default function Compras({ user }: ComprasProps) {
-  const { isDark, bgCard, textPrimary, textSecondary, border, inputBg, inputBorder, modalBg, tableHeader, tableRow } = useDarkMode();
-  
+  const {
+    isDark,
+    bgCard,
+    textPrimary,
+    textSecondary,
+    border,
+    inputBg,
+    inputBorder,
+    modalBg,
+    tableHeader,
+    tableRow,
+  } = useDarkMode();
+
   // ✅ Usar hooks globales
-  const { items: compras, add: addCompra, update: updateCompra, remove: removeCompra } = useCompras();
+  const {
+    items: compras,
+    add: addCompra,
+    update: updateCompra,
+    remove: removeCompra,
+  } = useCompras();
   const { items: productos } = useProductos();
   const { items: proveedores } = useProveedores();
   const { items: categorias } = useCategorias();
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [estadoFiltro, setEstadoFiltro] = useState<'Todas' | 'Pendiente' | 'Recibida' | 'Cancelada'>('Todas');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [estadoFiltro, setEstadoFiltro] = useState<
+    "Todas" | "Pendiente" | "Recibida" | "Cancelada"
+  >("Todas");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -52,17 +98,19 @@ export default function Compras({ user }: ComprasProps) {
   const [selectedCompra, setSelectedCompra] = useState<any>(null);
 
   // Formulario Nueva Compra
-  const [proveedorSeleccionado, setProveedorSeleccionado] = useState('');
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
-  const [busquedaProducto, setBusquedaProducto] = useState('');
-  const [estadoCompra, setEstadoCompra] = useState<'Pendiente' | 'Recibida' | 'Cancelada'>('Pendiente');
+  const [proveedorSeleccionado, setProveedorSeleccionado] = useState("");
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
+  const [busquedaProducto, setBusquedaProducto] = useState("");
+  const [estadoCompra, setEstadoCompra] = useState<
+    "Pendiente" | "Recibida" | "Cancelada"
+  >("Pendiente");
   const [carrito, setCarrito] = useState<ProductoCarrito[]>([]);
   const [currentProductPage, setCurrentProductPage] = useState(1);
   const productsPerPage = 6;
 
   // Productos activos
   const productosActivos = useMemo(() => {
-    return productos.filter(p => p.estado === 'Activo');
+    return productos.filter((p) => p.estado === "Activo");
   }, [productos]);
 
   // Filtrar productos para mostrar
@@ -78,36 +126,53 @@ export default function Compras({ user }: ComprasProps) {
 
     // Filtrar por categoría
     if (categoriaSeleccionada) {
-      filtered = filtered.filter(p => p.categoria === categoriaSeleccionada);
+      filtered = filtered.filter((p) => p.categoria === categoriaSeleccionada);
     }
 
     // Filtrar por búsqueda de nombre
     if (busquedaProducto) {
-      filtered = filtered.filter(p => 
-        p.nombreComercial?.toLowerCase().includes(busquedaProducto.toLowerCase()) ||
-        p.nombreGenerico?.toLowerCase().includes(busquedaProducto.toLowerCase())
+      filtered = filtered.filter(
+        (p) =>
+          p.nombreComercial
+            ?.toLowerCase()
+            .includes(busquedaProducto.toLowerCase()) ||
+          p.nombreGenerico
+            ?.toLowerCase()
+            .includes(busquedaProducto.toLowerCase())
       );
     }
 
     return filtered;
-  }, [productosActivos, proveedorSeleccionado, categoriaSeleccionada, busquedaProducto]);
+  }, [
+    productosActivos,
+    proveedorSeleccionado,
+    categoriaSeleccionada,
+    busquedaProducto,
+  ]);
 
   // Paginación de productos
-  const totalProductPages = Math.ceil(productosFiltrados.length / productsPerPage);
+  const totalProductPages = Math.ceil(
+    productosFiltrados.length / productsPerPage
+  );
   const productosPaginados = productosFiltrados.slice(
     (currentProductPage - 1) * productsPerPage,
     currentProductPage * productsPerPage
   );
 
   // Calcular total del carrito
-  const totalCarrito = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+  const totalCarrito = carrito.reduce(
+    (sum, item) => sum + item.precio * item.cantidad,
+    0
+  );
 
   // Filtrar compras
   const comprasFiltradas = useMemo(() => {
-    return compras.filter(compra => {
-      const matchesSearch = compra.proveedor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           compra.id?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesEstado = estadoFiltro === 'Todas' || compra.estado === estadoFiltro;
+    return compras.filter((compra) => {
+      const matchesSearch =
+        compra.proveedor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        compra.id?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesEstado =
+        estadoFiltro === "Todas" || compra.estado === estadoFiltro;
       return matchesSearch && matchesEstado;
     });
   }, [compras, searchTerm, estadoFiltro]);
@@ -120,10 +185,10 @@ export default function Compras({ user }: ComprasProps) {
   );
 
   const openCreateModal = () => {
-    setProveedorSeleccionado('');
-    setCategoriaSeleccionada('');
-    setBusquedaProducto('');
-    setEstadoCompra('Pendiente');
+    setProveedorSeleccionado("");
+    setCategoriaSeleccionada("");
+    setBusquedaProducto("");
+    setEstadoCompra("Pendiente");
     setCarrito([]);
     setCurrentProductPage(1);
     setModalOpen(true);
@@ -145,28 +210,31 @@ export default function Compras({ user }: ComprasProps) {
   };
 
   const agregarAlCarrito = (producto: any) => {
-    setCarrito(prev => {
-      const existing = prev.find(item => item.id === producto.id);
+    setCarrito((prev) => {
+      const existing = prev.find((item) => item.id === producto.id);
       if (existing) {
-        return prev.map(item =>
+        return prev.map((item) =>
           item.id === producto.id
             ? { ...item, cantidad: item.cantidad + 1 }
             : item
         );
       }
-      return [...prev, {
-        id: producto.id,
-        nombre: producto.nombreComercial || producto.nombreGenerico,
-        cantidad: 1,
-        precio: producto.precio
-      }];
+      return [
+        ...prev,
+        {
+          id: producto.id,
+          nombre: producto.nombreComercial || producto.nombreGenerico,
+          cantidad: 1,
+          precio: producto.precio,
+        },
+      ];
     });
-    toast.success('Producto agregado al carrito');
+    toast.success("Producto agregado al carrito");
   };
 
   const actualizarCantidad = (id: string, delta: number) => {
-    setCarrito(prev => {
-      return prev.map(item => {
+    setCarrito((prev) => {
+      return prev.map((item) => {
         if (item.id === id) {
           const newCantidad = Math.max(1, item.cantidad + delta);
           return { ...item, cantidad: newCantidad };
@@ -177,42 +245,42 @@ export default function Compras({ user }: ComprasProps) {
   };
 
   const quitarDelCarrito = (id: string) => {
-    setCarrito(prev => prev.filter(item => item.id !== id));
-    toast.success('Producto eliminado del carrito');
+    setCarrito((prev) => prev.filter((item) => item.id !== id));
+    toast.success("Producto eliminado del carrito");
   };
 
   const handleCreateCompra = () => {
     if (!proveedorSeleccionado) {
-      toast.error('Selecciona un proveedor');
+      toast.error("Selecciona un proveedor");
       return;
     }
 
     if (carrito.length === 0) {
-      toast.error('Agrega al menos un producto');
+      toast.error("Agrega al menos un producto");
       return;
     }
 
-    const proveedor = proveedores.find(p => p.id === proveedorSeleccionado);
-    
+    const proveedor = proveedores.find((p) => p.id === proveedorSeleccionado);
+
     const nuevaCompra = {
       id: `COMP-${Date.now()}`,
       fecha: new Date().toISOString(),
-      proveedor: proveedor?.nombre || '',
-      productos: carrito.map(item => ({
+      proveedor: proveedor?.nombre || "",
+      productos: carrito.map((item) => ({
         id: item.id,
         nombre: item.nombre,
         cantidad: item.cantidad,
-        precio: item.precio
+        precio: item.precio,
       })),
       total: totalCarrito,
       estado: estadoCompra,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
 
     addCompra(nuevaCompra);
 
-    toast.success('¡Compra registrada exitosamente!', {
-      style: { background: '#A7F3D0', color: '#065F46' }
+    toast.success("¡Compra registrada exitosamente!", {
+      style: { background: "#A7F3D0", color: "#065F46" },
     });
 
     setModalOpen(false);
@@ -223,7 +291,7 @@ export default function Compras({ user }: ComprasProps) {
 
     updateCompra(selectedCompra.id, { estado: selectedCompra.estado });
 
-    toast.success('Estado actualizado correctamente');
+    toast.success("Estado actualizado correctamente");
     setEditModalOpen(false);
   };
 
@@ -232,20 +300,36 @@ export default function Compras({ user }: ComprasProps) {
 
     removeCompra(selectedCompra.id);
 
-    toast.success('Compra eliminada correctamente');
+    toast.success("Compra eliminada correctamente");
     setDeleteDialogOpen(false);
   };
 
   const getEstadoColor = (estado: string) => {
     switch (estado) {
-      case 'Recibida':
-        return { bg: 'bg-green-500/10', text: 'text-green-500', border: 'border-green-500/20' };
-      case 'Pendiente':
-        return { bg: 'bg-yellow-500/10', text: 'text-yellow-500', border: 'border-yellow-500/20' };
-      case 'Cancelada':
-        return { bg: 'bg-red-500/10', text: 'text-red-500', border: 'border-red-500/20' };
+      case "Recibida":
+        return {
+          bg: "bg-green-500/10",
+          text: "text-green-500",
+          border: "border-green-500/20",
+        };
+      case "Pendiente":
+        return {
+          bg: "bg-yellow-500/10",
+          text: "text-yellow-500",
+          border: "border-yellow-500/20",
+        };
+      case "Cancelada":
+        return {
+          bg: "bg-red-500/10",
+          text: "text-red-500",
+          border: "border-red-500/20",
+        };
       default:
-        return { bg: 'bg-gray-500/10', text: 'text-gray-500', border: 'border-gray-500/20' };
+        return {
+          bg: "bg-gray-500/10",
+          text: "text-gray-500",
+          border: "border-gray-500/20",
+        };
     }
   };
 
@@ -254,10 +338,16 @@ export default function Compras({ user }: ComprasProps) {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className={`${textPrimary} transition-colors duration-300`} style={{ fontSize: '28px', fontWeight: 700 }}>
+          <h2
+            className={`${textPrimary} transition-colors duration-300`}
+            style={{ fontSize: "28px", fontWeight: 700 }}
+          >
             Gestión de Compras
           </h2>
-          <p className={`${textSecondary} transition-colors duration-300`} style={{ fontSize: '14px' }}>
+          <p
+            className={`${textSecondary} transition-colors duration-300`}
+            style={{ fontSize: "14px" }}
+          >
             Registra y gestiona las compras a proveedores
           </p>
         </div>
@@ -278,8 +368,15 @@ export default function Compras({ user }: ComprasProps) {
               <ShoppingCart className="w-5 h-5 text-blue-500" />
             </div>
             <div>
-              <p className={textSecondary} style={{ fontSize: '12px' }}>Total Compras</p>
-              <p className={textPrimary} style={{ fontSize: '20px', fontWeight: 700 }}>{compras.length}</p>
+              <p className={textSecondary} style={{ fontSize: "12px" }}>
+                Total Compras
+              </p>
+              <p
+                className={textPrimary}
+                style={{ fontSize: "20px", fontWeight: 700 }}
+              >
+                {compras.length}
+              </p>
             </div>
           </div>
         </div>
@@ -290,9 +387,14 @@ export default function Compras({ user }: ComprasProps) {
               <Calendar className="w-5 h-5 text-yellow-500" />
             </div>
             <div>
-              <p className={textSecondary} style={{ fontSize: '12px' }}>Pendientes</p>
-              <p className={textPrimary} style={{ fontSize: '20px', fontWeight: 700 }}>
-                {compras.filter(c => c.estado === 'Pendiente').length}
+              <p className={textSecondary} style={{ fontSize: "12px" }}>
+                Pendientes
+              </p>
+              <p
+                className={textPrimary}
+                style={{ fontSize: "20px", fontWeight: 700 }}
+              >
+                {compras.filter((c) => c.estado === "Pendiente").length}
               </p>
             </div>
           </div>
@@ -304,9 +406,14 @@ export default function Compras({ user }: ComprasProps) {
               <Package className="w-5 h-5 text-green-500" />
             </div>
             <div>
-              <p className={textSecondary} style={{ fontSize: '12px' }}>Recibidas</p>
-              <p className={textPrimary} style={{ fontSize: '20px', fontWeight: 700 }}>
-                {compras.filter(c => c.estado === 'Recibida').length}
+              <p className={textSecondary} style={{ fontSize: "12px" }}>
+                Recibidas
+              </p>
+              <p
+                className={textPrimary}
+                style={{ fontSize: "20px", fontWeight: 700 }}
+              >
+                {compras.filter((c) => c.estado === "Recibida").length}
               </p>
             </div>
           </div>
@@ -318,8 +425,13 @@ export default function Compras({ user }: ComprasProps) {
               <ShoppingCart className="w-5 h-5 text-purple-500" />
             </div>
             <div>
-              <p className={textSecondary} style={{ fontSize: '12px' }}>Monto Total</p>
-              <p className={textPrimary} style={{ fontSize: '16px', fontWeight: 700 }}>
+              <p className={textSecondary} style={{ fontSize: "12px" }}>
+                Monto Total
+              </p>
+              <p
+                className={textPrimary}
+                style={{ fontSize: "16px", fontWeight: 700 }}
+              >
                 ${compras.reduce((sum, c) => sum + c.total, 0).toLocaleString()}
               </p>
             </div>
@@ -328,7 +440,9 @@ export default function Compras({ user }: ComprasProps) {
       </div>
 
       {/* Filtros */}
-      <div className={`${bgCard} rounded-xl p-6 border ${border} shadow-sm transition-colors duration-300`}>
+      <div
+        className={`${bgCard} rounded-xl p-6 border ${border} shadow-sm transition-colors duration-300`}
+      >
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#63E6BE]" />
@@ -337,25 +451,39 @@ export default function Compras({ user }: ComprasProps) {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por proveedor o ID..."
-              className={`pl-12 h-12 rounded-xl border-2 ${inputBorder} ${inputBg} ${isDark ? 'text-white placeholder-gray-400' : ''} focus:border-[#63E6BE]`}
+              className={`pl-12 h-12 rounded-xl border-2 ${inputBorder} ${inputBg} ${
+                isDark ? "text-white placeholder-gray-400" : ""
+              } focus:border-[#63E6BE]`}
             />
           </div>
           <div className="flex gap-2">
             <Button
-              onClick={() => setEstadoFiltro('Todas')}
-              className={`rounded-xl ${estadoFiltro === 'Todas' ? 'bg-[#63E6BE] text-white' : 'bg-gray-200 text-gray-700'}`}
+              onClick={() => setEstadoFiltro("Todas")}
+              className={`rounded-xl ${
+                estadoFiltro === "Todas"
+                  ? "bg-[#63E6BE] text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
             >
               Todas
             </Button>
             <Button
-              onClick={() => setEstadoFiltro('Pendiente')}
-              className={`rounded-xl ${estadoFiltro === 'Pendiente' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+              onClick={() => setEstadoFiltro("Pendiente")}
+              className={`rounded-xl ${
+                estadoFiltro === "Pendiente"
+                  ? "bg-yellow-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
             >
               Pendientes
             </Button>
             <Button
-              onClick={() => setEstadoFiltro('Recibida')}
-              className={`rounded-xl ${estadoFiltro === 'Recibida' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+              onClick={() => setEstadoFiltro("Recibida")}
+              className={`rounded-xl ${
+                estadoFiltro === "Recibida"
+                  ? "bg-green-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
             >
               Recibidas
             </Button>
@@ -364,18 +492,34 @@ export default function Compras({ user }: ComprasProps) {
       </div>
 
       {/* Tabla */}
-      <div className={`${bgCard} rounded-xl border ${border} overflow-hidden shadow-sm transition-colors duration-300`}>
+      <div
+        className={`${bgCard} rounded-xl border ${border} overflow-hidden shadow-sm transition-colors duration-300`}
+      >
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className={tableHeader}>
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">ID Compra</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Fecha</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Proveedor</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Productos</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Total</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Estado</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Acciones</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                  ID Compra
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                  Fecha
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                  Proveedor
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                  Productos
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                  Total
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                  Estado
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -383,23 +527,35 @@ export default function Compras({ user }: ComprasProps) {
                 const estadoStyle = getEstadoColor(compra.estado);
                 return (
                   <tr key={compra.id} className={tableRow}>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${textPrimary}`}>
+                    <td
+                      className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${textPrimary}`}
+                    >
                       {compra.id}
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${textSecondary}`}>
-                      {new Date(compra.fecha).toLocaleDateString('es-ES')}
+                    <td
+                      className={`px-6 py-4 whitespace-nowrap text-sm ${textSecondary}`}
+                    >
+                      {new Date(compra.fecha).toLocaleDateString("es-ES")}
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${textPrimary}`}>
+                    <td
+                      className={`px-6 py-4 whitespace-nowrap text-sm ${textPrimary}`}
+                    >
                       {compra.proveedor}
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${textSecondary}`}>
+                    <td
+                      className={`px-6 py-4 whitespace-nowrap text-sm ${textSecondary}`}
+                    >
                       {compra.productos?.length || 0} producto(s)
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${textPrimary}`}>
+                    <td
+                      className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${textPrimary}`}
+                    >
                       ${compra.total?.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`px-3 py-1 rounded-full ${estadoStyle.bg} ${estadoStyle.text} border ${estadoStyle.border} text-xs font-semibold`}>
+                      <span
+                        className={`px-3 py-1 rounded-full ${estadoStyle.bg} ${estadoStyle.text} border ${estadoStyle.border} text-xs font-semibold`}
+                      >
                         {compra.estado}
                       </span>
                     </td>
@@ -442,12 +598,14 @@ export default function Compras({ user }: ComprasProps) {
         {/* Paginación */}
         {totalPages > 1 && (
           <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-            <p className={textSecondary} style={{ fontSize: '14px' }}>
-              Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, comprasFiltradas.length)} de {comprasFiltradas.length} resultados
+            <p className={textSecondary} style={{ fontSize: "14px" }}>
+              Mostrando {(currentPage - 1) * itemsPerPage + 1} a{" "}
+              {Math.min(currentPage * itemsPerPage, comprasFiltradas.length)} de{" "}
+              {comprasFiltradas.length} resultados
             </p>
             <div className="flex items-center gap-2">
               <Button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
                 className="h-9 w-9 p-0 rounded-lg"
               >
@@ -457,7 +615,9 @@ export default function Compras({ user }: ComprasProps) {
                 Página {currentPage} de {totalPages}
               </span>
               <Button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                }
                 disabled={currentPage === totalPages}
                 className="h-9 w-9 p-0 rounded-lg"
               >
@@ -470,34 +630,61 @@ export default function Compras({ user }: ComprasProps) {
 
       {/* Modal Nueva Compra */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className={`${modalBg} rounded-2xl p-6 max-w-4xl max-h-[90vh] overflow-y-auto`}>
+        <DialogContent
+          className={`${modalBg} rounded-2xl p-6 max-w-4xl max-h-[90vh] overflow-y-auto`}
+        >
           <DialogHeader>
-            <DialogTitle className={`${textPrimary} text-2xl font-bold`}>Nueva Compra</DialogTitle>
+            <DialogTitle className={`${textPrimary} text-2xl font-bold`}>
+              Nueva Compra
+            </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-6 mt-4">
             {/* Proveedor y Estado */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className={`block ${textPrimary} mb-2 font-semibold`}>Proveedor *</label>
-                <Select value={proveedorSeleccionado} onValueChange={setProveedorSeleccionado}>
-                  <SelectTrigger className={`h-12 rounded-xl ${inputBorder} ${inputBg}`}>
+                <label className={`block ${textPrimary} mb-2 font-semibold`}>
+                  Proveedor *
+                </label>
+                <Select
+                  value={proveedorSeleccionado}
+                  onValueChange={setProveedorSeleccionado}
+                >
+                  <SelectTrigger
+                    className={`h-12 rounded-xl ${inputBorder} ${inputBg}`}
+                  >
                     <SelectValue placeholder="Selecciona un proveedor" />
                   </SelectTrigger>
                   <SelectContent>
-                    {proveedores.filter(p => p.estado === 'Activo').map(proveedor => (
-                      <SelectItem key={proveedor.id} value={proveedor.id}>
-                        {proveedor.nombre}
+                    {proveedores.filter((p) => p.estado === "Activo").length ===
+                    0 ? (
+                      <SelectItem value="__none" disabled>
+                        No hay proveedores
                       </SelectItem>
-                    ))}
+                    ) : (
+                      proveedores
+                        .filter((p) => p.estado === "Activo")
+                        .map((proveedor) => (
+                          <SelectItem key={proveedor.id} value={proveedor.id}>
+                            {proveedor.nombre}
+                          </SelectItem>
+                        ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <label className={`block ${textPrimary} mb-2 font-semibold`}>Estado de la Compra *</label>
-                <Select value={estadoCompra} onValueChange={(value: any) => setEstadoCompra(value)}>
-                  <SelectTrigger className={`h-12 rounded-xl ${inputBorder} ${inputBg}`}>
+                <label className={`block ${textPrimary} mb-2 font-semibold`}>
+                  Estado de la Compra *
+                </label>
+                <Select
+                  value={estadoCompra}
+                  onValueChange={(value: any) => setEstadoCompra(value)}
+                >
+                  <SelectTrigger
+                    className={`h-12 rounded-xl ${inputBorder} ${inputBg}`}
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -511,26 +698,44 @@ export default function Compras({ user }: ComprasProps) {
 
             {/* Filtros de Productos */}
             <div className="space-y-4">
-              <h3 className={`${textPrimary} font-bold text-lg`}>Seleccionar Productos</h3>
-              
+              <h3 className={`${textPrimary} font-bold text-lg`}>
+                Seleccionar Productos
+              </h3>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className={`block ${textPrimary} mb-2 font-semibold`}>Categoría</label>
-                  <Select value={categoriaSeleccionada} onValueChange={setCategoriaSeleccionada}>
-                    <SelectTrigger className={`h-12 rounded-xl ${inputBorder} ${inputBg}`}>
+                  <label className={`block ${textPrimary} mb-2 font-semibold`}>
+                    Categoría
+                  </label>
+                  <Select
+                    value={categoriaSeleccionada}
+                    onValueChange={setCategoriaSeleccionada}
+                  >
+                    <SelectTrigger
+                      className={`h-12 rounded-xl ${inputBorder} ${inputBg}`}
+                    >
                       <SelectValue placeholder="Todas las categorías" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categorias.filter(c => c.estado === 'Activo').map(cat => (
-                        <SelectItem key={cat.id} value={cat.nombre}>
-                          {cat.nombre}
+                      {categorias.filter((c) => c.estado === "Activo")
+                        .length === 0 ? (
+                        <SelectItem value="__none" disabled>
+                          No hay categorías
                         </SelectItem>
-                      ))}
+                      ) : (
+                        categorias
+                          .filter((c) => c.estado === "Activo")
+                          .map((cat) => (
+                            <SelectItem key={cat.id} value={cat.nombre}>
+                              {cat.nombre}
+                            </SelectItem>
+                          ))
+                      )}
                     </SelectContent>
                   </Select>
                   {categoriaSeleccionada && (
                     <button
-                      onClick={() => setCategoriaSeleccionada('')}
+                      onClick={() => setCategoriaSeleccionada("")}
                       className={`mt-2 text-xs ${textSecondary} hover:text-[#63E6BE] underline`}
                     >
                       Limpiar filtro
@@ -539,7 +744,9 @@ export default function Compras({ user }: ComprasProps) {
                 </div>
 
                 <div>
-                  <label className={`block ${textPrimary} mb-2 font-semibold`}>Buscar Producto</label>
+                  <label className={`block ${textPrimary} mb-2 font-semibold`}>
+                    Buscar Producto
+                  </label>
                   <Input
                     value={busquedaProducto}
                     onChange={(e) => setBusquedaProducto(e.target.value)}
@@ -566,8 +773,11 @@ export default function Compras({ user }: ComprasProps) {
                           <div className="text-xs font-semibold text-[#63E6BE] bg-[#63E6BE]/10 px-2 py-1 rounded inline-block mb-2">
                             {producto.categoria}
                           </div>
-                          <h4 className={`${textPrimary} font-bold text-sm mb-1`}>
-                            {producto.nombreComercial || producto.nombreGenerico}
+                          <h4
+                            className={`${textPrimary} font-bold text-sm mb-1`}
+                          >
+                            {producto.nombreComercial ||
+                              producto.nombreGenerico}
                           </h4>
                           <p className={`${textSecondary} text-xs mb-2`}>
                             {producto.laboratorio}
@@ -594,7 +804,9 @@ export default function Compras({ user }: ComprasProps) {
 
               {productosFiltrados.length === 0 && (
                 <div className="text-center py-8">
-                  <Package className={`w-12 h-12 mx-auto mb-2 ${textSecondary}`} />
+                  <Package
+                    className={`w-12 h-12 mx-auto mb-2 ${textSecondary}`}
+                  />
                   <p className={textSecondary}>No se encontraron productos</p>
                 </div>
               )}
@@ -603,17 +815,23 @@ export default function Compras({ user }: ComprasProps) {
               {totalProductPages > 1 && (
                 <div className="flex justify-center items-center gap-2">
                   <Button
-                    onClick={() => setCurrentProductPage(prev => Math.max(1, prev - 1))}
+                    onClick={() =>
+                      setCurrentProductPage((prev) => Math.max(1, prev - 1))
+                    }
                     disabled={currentProductPage === 1}
                     className="h-8 w-8 p-0 rounded-lg"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
-                  <span className={textPrimary} style={{ fontSize: '14px' }}>
+                  <span className={textPrimary} style={{ fontSize: "14px" }}>
                     {currentProductPage} / {totalProductPages}
                   </span>
                   <Button
-                    onClick={() => setCurrentProductPage(prev => Math.min(totalProductPages, prev + 1))}
+                    onClick={() =>
+                      setCurrentProductPage((prev) =>
+                        Math.min(totalProductPages, prev + 1)
+                      )
+                    }
                     disabled={currentProductPage === totalProductPages}
                     className="h-8 w-8 p-0 rounded-lg"
                   >
@@ -625,18 +843,29 @@ export default function Compras({ user }: ComprasProps) {
 
             {/* Carrito de Compra */}
             {carrito.length > 0 && (
-              <div className={`p-4 rounded-xl border-2 ${border} bg-gray-50 dark:bg-gray-800/50`}>
-                <h3 className={`${textPrimary} font-bold text-lg mb-4 flex items-center`}>
+              <div
+                className={`p-4 rounded-xl border-2 ${border} bg-gray-50 dark:bg-gray-800/50`}
+              >
+                <h3
+                  className={`${textPrimary} font-bold text-lg mb-4 flex items-center`}
+                >
                   <ShoppingCart className="w-5 h-5 mr-2 text-[#63E6BE]" />
                   Carrito de Compra ({carrito.length} productos)
                 </h3>
-                
+
                 <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {carrito.map(item => (
-                    <div key={item.id} className={`flex items-center gap-4 p-3 rounded-lg border ${border} bg-white dark:bg-gray-900`}>
+                  {carrito.map((item) => (
+                    <div
+                      key={item.id}
+                      className={`flex items-center gap-4 p-3 rounded-lg border ${border} bg-white dark:bg-gray-900`}
+                    >
                       <div className="flex-1">
-                        <h4 className={`${textPrimary} font-semibold text-sm`}>{item.nombre}</h4>
-                        <p className={`${textSecondary} text-xs`}>${item.precio.toLocaleString()} c/u</p>
+                        <h4 className={`${textPrimary} font-semibold text-sm`}>
+                          {item.nombre}
+                        </h4>
+                        <p className={`${textSecondary} text-xs`}>
+                          ${item.precio.toLocaleString()} c/u
+                        </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Button
@@ -645,7 +874,11 @@ export default function Compras({ user }: ComprasProps) {
                         >
                           <Minus className="w-4 h-4" />
                         </Button>
-                        <span className={`${textPrimary} font-bold w-8 text-center`}>{item.cantidad}</span>
+                        <span
+                          className={`${textPrimary} font-bold w-8 text-center`}
+                        >
+                          {item.cantidad}
+                        </span>
                         <Button
                           onClick={() => actualizarCantidad(item.id, 1)}
                           className="h-7 w-7 p-0 rounded-lg bg-[#63E6BE] text-white"
@@ -668,8 +901,12 @@ export default function Compras({ user }: ComprasProps) {
 
                 {/* Total */}
                 <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                  <span className={`${textPrimary} font-bold text-lg`}>Total:</span>
-                  <span className="text-[#63E6BE] font-bold text-2xl">${totalCarrito.toLocaleString()}</span>
+                  <span className={`${textPrimary} font-bold text-lg`}>
+                    Total:
+                  </span>
+                  <span className="text-[#63E6BE] font-bold text-2xl">
+                    ${totalCarrito.toLocaleString()}
+                  </span>
                 </div>
               </div>
             )}
@@ -697,26 +934,36 @@ export default function Compras({ user }: ComprasProps) {
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
         <DialogContent className={`${modalBg} rounded-2xl p-6 max-w-md`}>
           <DialogHeader>
-            <DialogTitle className={`${textPrimary} text-2xl font-bold`}>Editar Estado de Compra</DialogTitle>
+            <DialogTitle className={`${textPrimary} text-2xl font-bold`}>
+              Editar Estado de Compra
+            </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 mt-4">
             <div>
-              <label className={`block ${textPrimary} mb-2 font-semibold`}>ID Compra</label>
+              <label className={`block ${textPrimary} mb-2 font-semibold`}>
+                ID Compra
+              </label>
               <Input
-                value={selectedCompra?.id || ''}
+                value={selectedCompra?.id || ""}
                 disabled
                 className={`h-12 rounded-xl ${inputBorder} ${inputBg}`}
               />
             </div>
 
             <div>
-              <label className={`block ${textPrimary} mb-2 font-semibold`}>Estado *</label>
-              <Select 
-                value={selectedCompra?.estado || ''} 
-                onValueChange={(value) => setSelectedCompra({ ...selectedCompra, estado: value })}
+              <label className={`block ${textPrimary} mb-2 font-semibold`}>
+                Estado *
+              </label>
+              <Select
+                value={selectedCompra?.estado || ""}
+                onValueChange={(value) =>
+                  setSelectedCompra({ ...selectedCompra, estado: value })
+                }
               >
-                <SelectTrigger className={`h-12 rounded-xl ${inputBorder} ${inputBg}`}>
+                <SelectTrigger
+                  className={`h-12 rounded-xl ${inputBorder} ${inputBg}`}
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -749,54 +996,94 @@ export default function Compras({ user }: ComprasProps) {
       <Dialog open={detailModalOpen} onOpenChange={setDetailModalOpen}>
         <DialogContent className={`${modalBg} rounded-2xl p-6 max-w-2xl`}>
           <DialogHeader>
-            <DialogTitle className={`${textPrimary} text-2xl font-bold`}>Detalle de Compra</DialogTitle>
+            <DialogTitle className={`${textPrimary} text-2xl font-bold`}>
+              Detalle de Compra
+            </DialogTitle>
           </DialogHeader>
 
           {selectedCompra && (
             <div className="space-y-4 mt-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block ${textSecondary} mb-1 text-sm`}>ID Compra</label>
-                  <p className={`${textPrimary} font-semibold`}>{selectedCompra.id}</p>
-                </div>
-                <div>
-                  <label className={`block ${textSecondary} mb-1 text-sm`}>Fecha</label>
+                  <label className={`block ${textSecondary} mb-1 text-sm`}>
+                    ID Compra
+                  </label>
                   <p className={`${textPrimary} font-semibold`}>
-                    {new Date(selectedCompra.fecha).toLocaleDateString('es-ES')}
+                    {selectedCompra.id}
                   </p>
                 </div>
                 <div>
-                  <label className={`block ${textSecondary} mb-1 text-sm`}>Proveedor</label>
-                  <p className={`${textPrimary} font-semibold`}>{selectedCompra.proveedor}</p>
+                  <label className={`block ${textSecondary} mb-1 text-sm`}>
+                    Fecha
+                  </label>
+                  <p className={`${textPrimary} font-semibold`}>
+                    {new Date(selectedCompra.fecha).toLocaleDateString("es-ES")}
+                  </p>
                 </div>
                 <div>
-                  <label className={`block ${textSecondary} mb-1 text-sm`}>Estado</label>
-                  <span className={`px-3 py-1 rounded-full ${getEstadoColor(selectedCompra.estado).bg} ${getEstadoColor(selectedCompra.estado).text} border ${getEstadoColor(selectedCompra.estado).border} text-xs font-semibold`}>
+                  <label className={`block ${textSecondary} mb-1 text-sm`}>
+                    Proveedor
+                  </label>
+                  <p className={`${textPrimary} font-semibold`}>
+                    {selectedCompra.proveedor}
+                  </p>
+                </div>
+                <div>
+                  <label className={`block ${textSecondary} mb-1 text-sm`}>
+                    Estado
+                  </label>
+                  <span
+                    className={`px-3 py-1 rounded-full ${
+                      getEstadoColor(selectedCompra.estado).bg
+                    } ${getEstadoColor(selectedCompra.estado).text} border ${
+                      getEstadoColor(selectedCompra.estado).border
+                    } text-xs font-semibold`}
+                  >
                     {selectedCompra.estado}
                   </span>
                 </div>
               </div>
 
               <div>
-                <label className={`block ${textSecondary} mb-2 text-sm`}>Productos</label>
+                <label className={`block ${textSecondary} mb-2 text-sm`}>
+                  Productos
+                </label>
                 <div className="space-y-2">
-                  {selectedCompra.productos?.map((producto: any, index: number) => (
-                    <div key={index} className={`flex justify-between items-center p-3 rounded-lg border ${border}`}>
-                      <div>
-                        <p className={`${textPrimary} font-semibold`}>{producto.nombre}</p>
-                        <p className={`${textSecondary} text-xs`}>Cantidad: {producto.cantidad}</p>
+                  {selectedCompra.productos?.map(
+                    (producto: any, index: number) => (
+                      <div
+                        key={index}
+                        className={`flex justify-between items-center p-3 rounded-lg border ${border}`}
+                      >
+                        <div>
+                          <p className={`${textPrimary} font-semibold`}>
+                            {producto.nombre}
+                          </p>
+                          <p className={`${textSecondary} text-xs`}>
+                            Cantidad: {producto.cantidad}
+                          </p>
+                        </div>
+                        <p className={`${textPrimary} font-bold`}>
+                          $
+                          {(
+                            producto.precio * producto.cantidad
+                          ).toLocaleString()}
+                        </p>
                       </div>
-                      <p className={`${textPrimary} font-bold`}>
-                        ${(producto.precio * producto.cantidad).toLocaleString()}
-                      </p>
-                    </div>
-                  ))}
+                    )
+                  )}
                 </div>
               </div>
 
-              <div className={`flex justify-between items-center p-4 rounded-xl bg-[#63E6BE]/10 border-2 border-[#63E6BE]`}>
-                <span className={`${textPrimary} font-bold text-lg`}>Total:</span>
-                <span className="text-[#63E6BE] font-bold text-2xl">${selectedCompra.total?.toLocaleString()}</span>
+              <div
+                className={`flex justify-between items-center p-4 rounded-xl bg-[#63E6BE]/10 border-2 border-[#63E6BE]`}
+              >
+                <span className={`${textPrimary} font-bold text-lg`}>
+                  Total:
+                </span>
+                <span className="text-[#63E6BE] font-bold text-2xl">
+                  ${selectedCompra.total?.toLocaleString()}
+                </span>
               </div>
 
               <Button
@@ -814,13 +1101,18 @@ export default function Compras({ user }: ComprasProps) {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className={`${modalBg} rounded-2xl`}>
           <AlertDialogHeader>
-            <AlertDialogTitle className={textPrimary}>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogTitle className={textPrimary}>
+              ¿Estás seguro?
+            </AlertDialogTitle>
             <AlertDialogDescription className={textSecondary}>
-              Esta acción eliminará la compra permanentemente. Esta acción no se puede deshacer.
+              Esta acción eliminará la compra permanentemente. Esta acción no se
+              puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl">
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="rounded-xl bg-red-500 hover:bg-red-600 text-white"

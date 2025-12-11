@@ -1,14 +1,15 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { 
-  usersStorage, 
-  productosStorage, 
-  categoriasStorage, 
+import { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  usersStorage,
+  productosStorage,
+  categoriasStorage,
   proveedoresStorage,
   comprasStorage,
   ventasStorage,
   pedidosStorage,
   citasStorage,
   serviciosStorage,
+  medicosStorage,
   rolesStorage,
   type User,
   type Producto,
@@ -19,8 +20,9 @@ import {
   type Pedido,
   type Cita,
   type Servicio,
-  type Rol
-} from '../utils/localStorage';
+  type Rol,
+  type Medico,
+} from "../utils/localStorage";
 
 /**
  * Hook genérico para manejar cualquier entidad con sincronización automática
@@ -60,39 +62,54 @@ function useEntity<T>(
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('localStorageUpdated', handleCustomStorageChange as EventListener);
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener(
+      "localStorageUpdated",
+      handleCustomStorageChange as EventListener
+    );
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('localStorageUpdated', handleCustomStorageChange as EventListener);
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener(
+        "localStorageUpdated",
+        handleCustomStorageChange as EventListener
+      );
     };
   }, [storageKey, syncTrigger]);
 
   const refresh = useCallback(() => {
-    setSyncTrigger(prev => prev + 1);
+    setSyncTrigger((prev) => prev + 1);
   }, []);
 
-  const add = useCallback((item: T) => {
-    const newItems = storage.add(item);
-    setItems(newItems);
-    refresh();
-    return newItems;
-  }, [storage, refresh]);
+  const add = useCallback(
+    (item: T) => {
+      const newItems = storage.add(item);
+      setItems(newItems);
+      refresh();
+      return newItems;
+    },
+    [storage, refresh]
+  );
 
-  const update = useCallback((id: string, data: Partial<T>) => {
-    const newItems = storage.update(id, data);
-    setItems(newItems);
-    refresh();
-    return newItems;
-  }, [storage, refresh]);
+  const update = useCallback(
+    (id: string, data: Partial<T>) => {
+      const newItems = storage.update(id, data);
+      setItems(newItems);
+      refresh();
+      return newItems;
+    },
+    [storage, refresh]
+  );
 
-  const remove = useCallback((id: string) => {
-    const newItems = storage.delete(id);
-    setItems(newItems);
-    refresh();
-    return newItems;
-  }, [storage, refresh]);
+  const remove = useCallback(
+    (id: string) => {
+      const newItems = storage.delete(id);
+      setItems(newItems);
+      refresh();
+      return newItems;
+    },
+    [storage, refresh]
+  );
 
   return {
     items,
@@ -100,7 +117,7 @@ function useEntity<T>(
     update,
     remove,
     refresh,
-    setItems
+    setItems,
   };
 }
 
@@ -108,70 +125,77 @@ function useEntity<T>(
  * Hook para Usuarios
  */
 export function useUsuarios() {
-  return useEntity<User>('syspharma_users', usersStorage);
+  return useEntity<User>("syspharma_users", usersStorage);
 }
 
 /**
  * Hook para Productos
  */
 export function useProductos() {
-  return useEntity<Producto>('syspharma_productos', productosStorage);
+  return useEntity<Producto>("syspharma_productos", productosStorage);
 }
 
 /**
  * Hook para Categorías
  */
 export function useCategorias() {
-  return useEntity<Categoria>('syspharma_categorias', categoriasStorage);
+  return useEntity<Categoria>("syspharma_categorias", categoriasStorage);
 }
 
 /**
  * Hook para Proveedores
  */
 export function useProveedores() {
-  return useEntity<Proveedor>('syspharma_proveedores', proveedoresStorage);
+  return useEntity<Proveedor>("syspharma_proveedores", proveedoresStorage);
 }
 
 /**
  * Hook para Compras
  */
 export function useCompras() {
-  return useEntity<Compra>('syspharma_compras', comprasStorage);
+  return useEntity<Compra>("syspharma_compras", comprasStorage);
 }
 
 /**
  * Hook para Ventas
  */
 export function useVentas() {
-  return useEntity<Venta>('syspharma_ventas', ventasStorage);
+  return useEntity<Venta>("syspharma_ventas", ventasStorage);
 }
 
 /**
  * Hook para Pedidos
  */
 export function usePedidos() {
-  return useEntity<Pedido>('syspharma_pedidos', pedidosStorage);
+  return useEntity<Pedido>("syspharma_pedidos", pedidosStorage);
 }
 
 /**
  * Hook para Citas
  */
 export function useCitas() {
-  return useEntity<Cita>('syspharma_citas', citasStorage);
+  return useEntity<Cita>("syspharma_citas", citasStorage);
+}
+
+/**
+ * Hook para Médicos (no son usuarios del sistema, solo para agendamiento)
+ */
+export function useMedicos() {
+  return useEntity<Medico>("syspharma_medicos", medicosStorage);
 }
 
 /**
  * Hook para Servicios
  */
 export function useServicios() {
-  return useEntity<Servicio>('syspharma_servicios', serviciosStorage);
+  return useEntity<Servicio>("syspharma_servicios", serviciosStorage);
 }
 
 /**
  * Hook para Roles
  */
 export function useRoles() {
-  return useEntity<Rol>('syspharma_roles', rolesStorage);
+  return useEntity<Rol>("syspharma_roles", rolesStorage);
 }
 
 /**
@@ -189,6 +213,7 @@ export function useAllEntities() {
   const citas = useCitas();
   const servicios = useServicios();
   const roles = useRoles();
+  const medicos = useMedicos();
 
   return {
     usuarios,
@@ -200,6 +225,7 @@ export function useAllEntities() {
     pedidos,
     citas,
     servicios,
-    roles
+    roles,
+    medicos,
   };
 }

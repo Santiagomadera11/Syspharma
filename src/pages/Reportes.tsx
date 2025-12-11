@@ -1,18 +1,56 @@
-import { useState, useEffect, useMemo } from 'react';
-import { 
-  BarChart3, TrendingUp, DollarSign, Package, Filter, Download, FileText, 
-  Calendar, Users, ShoppingCart, Activity, ArrowUp, ArrowDown, Minus,
-  Eye, Clock, AlertCircle, Star, TrendingDown, Package2, Receipt, CreditCard
-} from 'lucide-react';
-import { useDarkMode } from '../hooks/useDarkMode';
-import { Button } from '../components/ui/button';
-import { motion, AnimatePresence } from 'motion/react';
-import { 
-  BarChart, Bar, LineChart, Line, PieChart, Pie, AreaChart, Area,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
-} from 'recharts';
-import { ventasStorage, productosStorage, pedidosStorage, citasStorage } from '../utils/localStorage';
-import { toast } from 'sonner@2.0.3';
+import { useState, useEffect, useMemo } from "react";
+import {
+  BarChart3,
+  TrendingUp,
+  DollarSign,
+  Package,
+  Filter,
+  Download,
+  FileText,
+  Calendar,
+  Users,
+  ShoppingCart,
+  Activity,
+  ArrowUp,
+  ArrowDown,
+  Minus,
+  Eye,
+  Clock,
+  AlertCircle,
+  Star,
+  TrendingDown,
+  Package2,
+  Receipt,
+  CreditCard,
+} from "lucide-react";
+import { useDarkMode } from "../hooks/useDarkMode";
+import { useStorageSync } from "../hooks/useStorageSync";
+import { Button } from "../components/ui/button";
+import { motion, AnimatePresence } from "motion/react";
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
+import {
+  ventasStorage,
+  productosStorage,
+  pedidosStorage,
+  citasStorage,
+} from "../utils/localStorage";
+import { toast } from "sonner";
 
 interface EstadisticaCard {
   id: string;
@@ -25,33 +63,52 @@ interface EstadisticaCard {
 }
 
 export default function Reportes() {
-  const { isDark, bgCard, textPrimary, textSecondary, border, inputBg, inputBorder, inputText, bgSecondary } = useDarkMode();
-  const [selectedPeriod, setSelectedPeriod] = useState('mes');
+  const {
+    isDark,
+    bgCard,
+    textPrimary,
+    textSecondary,
+    border,
+    inputBg,
+    inputBorder,
+    inputText,
+    bgSecondary,
+  } = useDarkMode();
+  const [selectedPeriod, setSelectedPeriod] = useState("mes");
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
-  const [vistaActual, setVistaActual] = useState<'general' | 'ventas' | 'productos' | 'citas'>('general');
+  const [vistaActual, setVistaActual] = useState<
+    "general" | "ventas" | "productos" | "citas"
+  >("general");
 
-  // Cargar datos del localStorage
-  const ventas = ventasStorage.getAll();
-  const productos = productosStorage.getAll();
-  const pedidos = pedidosStorage.getAll();
-  const citas = citasStorage.getAll();
+  // Hook de sincronización para recargar datos cuando cambia localStorage
+  const syncTrigger = useStorageSync();
+
+  // Cargar datos del localStorage - se recargará automáticamente con syncTrigger
+  const ventas = useMemo(() => ventasStorage.getAll(), [syncTrigger]);
+  const productos = useMemo(() => productosStorage.getAll(), [syncTrigger]);
+  const pedidos = useMemo(() => pedidosStorage.getAll(), [syncTrigger]);
+  const citas = useMemo(() => citasStorage.getAll(), [syncTrigger]);
 
   // Calcular estadísticas generales
   const estadisticas = useMemo(() => {
-    const ventasCompletadas = ventas.filter(v => v.estado === 'Completada');
+    const ventasCompletadas = ventas.filter((v) => v.estado === "Completada");
     const totalVentas = ventasCompletadas.reduce((sum, v) => sum + v.total, 0);
-    const ventasHoy = ventasCompletadas.filter(v => {
+    const ventasHoy = ventasCompletadas.filter((v) => {
       const fecha = new Date(v.fecha);
       const hoy = new Date();
       return fecha.toDateString() === hoy.toDateString();
     }).length;
 
-    const productosActivos = productos.filter(p => p.estado === 'Activo').length;
-    const productosBajoStock = productos.filter(p => p.stock < 20).length;
+    const productosActivos = productos.filter(
+      (p) => p.estado === "Activo"
+    ).length;
+    const productosBajoStock = productos.filter((p) => p.stock < 20).length;
 
-    const pedidosPendientes = pedidos.filter(p => p.estado === 'Pendiente' || p.estado === 'En Proceso').length;
-    
-    const citasHoy = citas.filter(c => {
+    const pedidosPendientes = pedidos.filter(
+      (p) => p.estado === "Pendiente" || p.estado === "En Proceso"
+    ).length;
+
+    const citasHoy = citas.filter((c) => {
       const fecha = new Date(c.fecha);
       const hoy = new Date();
       return fecha.toDateString() === hoy.toDateString();
@@ -65,17 +122,33 @@ export default function Reportes() {
       pedidosPendientes,
       citasHoy,
       cantidadVentas: ventasCompletadas.length,
-      promedioVenta: ventasCompletadas.length > 0 ? totalVentas / ventasCompletadas.length : 0
+      promedioVenta:
+        ventasCompletadas.length > 0
+          ? totalVentas / ventasCompletadas.length
+          : 0,
     };
   }, [ventas, productos, pedidos, citas]);
 
   // Datos para gráfico de ventas por mes
   const datosVentasMensuales = useMemo(() => {
-    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const meses = [
+      "Ene",
+      "Feb",
+      "Mar",
+      "Abr",
+      "May",
+      "Jun",
+      "Jul",
+      "Ago",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dic",
+    ];
     const datos = meses.map((mes, index) => {
-      const ventasMes = ventas.filter(v => {
+      const ventasMes = ventas.filter((v) => {
         const fecha = new Date(v.fecha);
-        return fecha.getMonth() === index && v.estado === 'Completada';
+        return fecha.getMonth() === index && v.estado === "Completada";
       });
       const total = ventasMes.reduce((sum, v) => sum + v.total, 0);
       const cantidad = ventasMes.length;
@@ -86,13 +159,19 @@ export default function Reportes() {
 
   // Datos para gráfico de productos más vendidos
   const productosTopVentas = useMemo(() => {
-    const ventasProductos: { [key: string]: { nombre: string; cantidad: number; ingresos: number } } = {};
-    
-    ventas.forEach(venta => {
-      if (venta.estado === 'Completada' && venta.productos) {
-        venta.productos.forEach(prod => {
+    const ventasProductos: {
+      [key: string]: { nombre: string; cantidad: number; ingresos: number };
+    } = {};
+
+    ventas.forEach((venta) => {
+      if (venta.estado === "Completada" && venta.productos) {
+        venta.productos.forEach((prod) => {
           if (!ventasProductos[prod.nombre]) {
-            ventasProductos[prod.nombre] = { nombre: prod.nombre, cantidad: 0, ingresos: 0 };
+            ventasProductos[prod.nombre] = {
+              nombre: prod.nombre,
+              cantidad: 0,
+              ingresos: 0,
+            };
           }
           ventasProductos[prod.nombre].cantidad += prod.cantidad;
           ventasProductos[prod.nombre].ingresos += prod.precio * prod.cantidad;
@@ -108,9 +187,9 @@ export default function Reportes() {
   // Datos para gráfico de métodos de pago
   const datosMetodosPago = useMemo(() => {
     const metodos: { [key: string]: number } = {};
-    ventas.forEach(venta => {
-      if (venta.estado === 'Completada') {
-        const metodo = venta.metodoPago || 'Efectivo';
+    ventas.forEach((venta) => {
+      if (venta.estado === "Completada") {
+        const metodo = venta.metodoPago || "Efectivo";
         metodos[metodo] = (metodos[metodo] || 0) + venta.total;
       }
     });
@@ -120,19 +199,19 @@ export default function Reportes() {
 
   // Datos para gráfico de estados de pedidos
   const datosPedidos = useMemo(() => {
-    const estados = ['Pendiente', 'En Proceso', 'Completado', 'Cancelado'];
-    return estados.map(estado => ({
+    const estados = ["Pendiente", "En Proceso", "Completado", "Cancelado"];
+    return estados.map((estado) => ({
       estado,
-      cantidad: pedidos.filter(p => p.estado === estado).length
+      cantidad: pedidos.filter((p) => p.estado === estado).length,
     }));
   }, [pedidos]);
 
   // Datos de citas por estado
   const datosCitas = useMemo(() => {
-    const estados = ['Pendiente', 'Confirmada', 'Completada', 'Cancelada'];
-    return estados.map(estado => ({
+    const estados = ["Pendiente", "Confirmada", "Completada", "Cancelada"];
+    return estados.map((estado) => ({
       estado,
-      cantidad: citas.filter(c => c.estado === estado).length
+      cantidad: citas.filter((c) => c.estado === estado).length,
     }));
   }, [citas]);
 
@@ -142,97 +221,109 @@ export default function Reportes() {
     for (let i = 6; i >= 0; i--) {
       const fecha = new Date();
       fecha.setDate(fecha.getDate() - i);
-      const ventasDia = ventas.filter(v => {
+      const ventasDia = ventas.filter((v) => {
         const fechaVenta = new Date(v.fecha);
-        return fechaVenta.toDateString() === fecha.toDateString() && v.estado === 'Completada';
+        return (
+          fechaVenta.toDateString() === fecha.toDateString() &&
+          v.estado === "Completada"
+        );
       });
       const total = ventasDia.reduce((sum, v) => sum + v.total, 0);
       dias.push({
-        dia: fecha.toLocaleDateString('es-ES', { weekday: 'short' }),
+        dia: fecha.toLocaleDateString("es-ES", { weekday: "short" }),
         ventas: total,
-        cantidad: ventasDia.length
+        cantidad: ventasDia.length,
       });
     }
     return dias;
   }, [ventas]);
 
   const periods = [
-    { value: 'dia', label: 'Hoy' },
-    { value: 'semana', label: 'Esta Semana' },
-    { value: 'mes', label: 'Este Mes' },
-    { value: 'trimestre', label: 'Trimestre' },
-    { value: 'año', label: 'Este Año' }
+    { value: "dia", label: "Hoy" },
+    { value: "semana", label: "Esta Semana" },
+    { value: "mes", label: "Este Mes" },
+    { value: "trimestre", label: "Trimestre" },
+    { value: "año", label: "Este Año" },
   ];
 
   const handleDownloadReport = (reportId: string) => {
     setSelectedReport(reportId);
-    toast.success('Generando reporte...', {
-      description: 'Se descargará el archivo en formato PDF y Excel'
+    toast.success("Generando reporte...", {
+      description: "Se descargará el archivo en formato PDF y Excel",
     });
     setTimeout(() => {
       setSelectedReport(null);
-      toast.success('Reporte generado exitosamente');
+      toast.success("Reporte generado exitosamente");
     }, 2000);
   };
 
-  const COLORS = ['#63E6BE', '#3D4756', '#8B5CF6', '#F59E0B', '#EF4444', '#10B981', '#3B82F6', '#EC4899'];
+  const COLORS = [
+    "#63E6BE",
+    "#3D4756",
+    "#8B5CF6",
+    "#F59E0B",
+    "#EF4444",
+    "#10B981",
+    "#3B82F6",
+    "#EC4899",
+  ];
 
   // Tarjetas de estadísticas principales
   const tarjetasEstadisticas: EstadisticaCard[] = [
     {
-      id: '1',
-      titulo: 'Total Ventas',
+      id: "1",
+      titulo: "Total Ventas",
       valor: `₡${estadisticas.totalVentas.toLocaleString()}`,
       cambio: 12.5,
       icono: DollarSign,
-      color: '#63E6BE',
-      descripcion: `${estadisticas.cantidadVentas} ventas realizadas`
+      color: "#63E6BE",
+      descripcion: `${estadisticas.cantidadVentas} ventas realizadas`,
     },
     {
-      id: '2',
-      titulo: 'Ventas Hoy',
+      id: "2",
+      titulo: "Ventas Hoy",
       valor: estadisticas.ventasHoy,
       cambio: 8.3,
       icono: ShoppingCart,
-      color: '#8B5CF6',
-      descripcion: 'Ventas del día actual'
+      color: "#8B5CF6",
+      descripcion: "Ventas del día actual",
     },
     {
-      id: '3',
-      titulo: 'Productos Activos',
+      id: "3",
+      titulo: "Productos Activos",
       valor: estadisticas.productosActivos,
       cambio: 5.2,
       icono: Package,
-      color: '#10B981',
-      descripcion: `${estadisticas.productosBajoStock} bajo stock`
+      color: "#10B981",
+      descripcion: `${estadisticas.productosBajoStock} bajo stock`,
     },
     {
-      id: '4',
-      titulo: 'Pedidos Pendientes',
+      id: "4",
+      titulo: "Pedidos Pendientes",
       valor: estadisticas.pedidosPendientes,
       cambio: -3.1,
       icono: Receipt,
-      color: '#F59E0B',
-      descripcion: 'Requieren atención'
+      color: "#F59E0B",
+      descripcion: "Requieren atención",
     },
     {
-      id: '5',
-      titulo: 'Citas Hoy',
+      id: "5",
+      titulo: "Citas Hoy",
       valor: estadisticas.citasHoy,
       cambio: 0,
       icono: Calendar,
-      color: '#3B82F6',
-      descripcion: 'Agendadas para hoy'
+      color: "#3B82F6",
+      descripcion: "Agendadas para hoy",
     },
     {
-      id: '6',
-      titulo: 'Promedio Venta',
+      id: "6",
+      titulo: "Promedio Venta",
       valor: `₡${Math.round(estadisticas.promedioVenta).toLocaleString()}`,
       cambio: 7.8,
       icono: TrendingUp,
-      color: '#EC4899',
-      descripcion: 'Por transacción'
-    }
+      color: "#EC4899",
+      descripcion: "Por transacción",
+    },
   ];
 
   return (
@@ -245,17 +336,20 @@ export default function Reportes() {
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className={textPrimary} style={{ fontSize: '28px', fontWeight: 700 }}>
+            <h1
+              className={textPrimary}
+              style={{ fontSize: "28px", fontWeight: 700 }}
+            >
               Reportes y Analíticas
             </h1>
-            <p className={`${textSecondary} mt-1`} style={{ fontSize: '14px' }}>
+            <p className={`${textSecondary} mt-1`} style={{ fontSize: "14px" }}>
               Dashboard completo con métricas y estadísticas en tiempo real
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <Button
-              onClick={() => handleDownloadReport('completo')}
+              onClick={() => handleDownloadReport("completo")}
               className="h-11 px-6 rounded-xl bg-[#63E6BE] text-white hover:bg-[#4ec9a3] shadow-lg hover:shadow-xl transition-all duration-300"
               style={{ fontWeight: 600 }}
             >
@@ -275,20 +369,24 @@ export default function Reportes() {
       >
         <div className="flex flex-wrap gap-2">
           {[
-            { id: 'general', label: 'Vista General', icon: Activity },
-            { id: 'ventas', label: 'Ventas', icon: DollarSign },
-            { id: 'productos', label: 'Productos', icon: Package },
-            { id: 'citas', label: 'Citas', icon: Calendar }
-          ].map(vista => (
+            { id: "general", label: "Vista General", icon: Activity },
+            { id: "ventas", label: "Ventas", icon: DollarSign },
+            { id: "productos", label: "Productos", icon: Package },
+            { id: "citas", label: "Citas", icon: Calendar },
+          ].map((vista) => (
             <button
               key={vista.id}
               onClick={() => setVistaActual(vista.id as any)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-300 ${
                 vistaActual === vista.id
-                  ? 'bg-[#63E6BE] text-white shadow-lg'
-                  : `${isDark ? 'text-gray-400 hover:bg-[#161b22]' : 'text-gray-600 hover:bg-gray-50'}`
+                  ? "bg-[#63E6BE] text-white shadow-lg"
+                  : `${
+                      isDark
+                        ? "text-gray-400 hover:bg-[#161b22]"
+                        : "text-gray-600 hover:bg-gray-50"
+                    }`
               }`}
-              style={{ fontSize: '14px', fontWeight: 600 }}
+              style={{ fontSize: "14px", fontWeight: 600 }}
             >
               <vista.icon className="w-4 h-4" />
               {vista.label}
@@ -308,34 +406,51 @@ export default function Reportes() {
             className={`${bgCard} rounded-2xl border ${border} p-6 shadow-sm hover:shadow-xl transition-all duration-300 group`}
           >
             <div className="flex items-start justify-between mb-4">
-              <div 
+              <div
                 className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300"
-                style={{ backgroundColor: `${stat.color}20`, color: stat.color }}
+                style={{
+                  backgroundColor: `${stat.color}20`,
+                  color: stat.color,
+                }}
               >
                 <stat.icono className="w-6 h-6" />
               </div>
-              
+
               {stat.cambio !== undefined && stat.cambio !== 0 && (
-                <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${
-                  stat.cambio > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-                }`}>
-                  {stat.cambio > 0 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-                  <span style={{ fontSize: '12px', fontWeight: 600 }}>
+                <div
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg ${
+                    stat.cambio > 0
+                      ? "bg-green-100 text-green-600"
+                      : "bg-red-100 text-red-600"
+                  }`}
+                >
+                  {stat.cambio > 0 ? (
+                    <ArrowUp className="w-3 h-3" />
+                  ) : (
+                    <ArrowDown className="w-3 h-3" />
+                  )}
+                  <span style={{ fontSize: "12px", fontWeight: 600 }}>
                     {Math.abs(stat.cambio)}%
                   </span>
                 </div>
               )}
             </div>
 
-            <h3 className={`${textSecondary} mb-2`} style={{ fontSize: '13px', fontWeight: 500 }}>
+            <h3
+              className={`${textSecondary} mb-2`}
+              style={{ fontSize: "13px", fontWeight: 500 }}
+            >
               {stat.titulo}
             </h3>
-            
-            <p className={textPrimary} style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>
+
+            <p
+              className={textPrimary}
+              style={{ fontSize: "24px", fontWeight: 700, marginBottom: "8px" }}
+            >
               {stat.valor}
             </p>
 
-            <p className={textSecondary} style={{ fontSize: '12px' }}>
+            <p className={textSecondary} style={{ fontSize: "12px" }}>
               {stat.descripcion}
             </p>
           </motion.div>
@@ -344,7 +459,7 @@ export default function Reportes() {
 
       {/* Vista General */}
       <AnimatePresence mode="wait">
-        {vistaActual === 'general' && (
+        {vistaActual === "general" && (
           <motion.div
             key="general"
             initial={{ opacity: 0 }}
@@ -361,49 +476,61 @@ export default function Reportes() {
             >
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className={textPrimary} style={{ fontSize: '18px', fontWeight: 700 }}>
+                  <h3
+                    className={textPrimary}
+                    style={{ fontSize: "18px", fontWeight: 700 }}
+                  >
                     Ventas Últimos 7 Días
                   </h3>
-                  <p className={textSecondary} style={{ fontSize: '13px' }}>
+                  <p className={textSecondary} style={{ fontSize: "13px" }}>
                     Tendencia semanal de ventas
                   </p>
                 </div>
                 <TrendingUp className="w-6 h-6 text-[#63E6BE]" />
               </div>
-              
+
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={ventasUltimos7Dias}>
                   <defs>
-                    <linearGradient id="colorVentas" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#63E6BE" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#63E6BE" stopOpacity={0}/>
+                    <linearGradient
+                      id="colorVentas"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="5%" stopColor="#63E6BE" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#63E6BE" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#2d3748' : '#e2e8f0'} />
-                  <XAxis 
-                    dataKey="dia" 
-                    stroke={isDark ? '#9ca3af' : '#6b7280'}
-                    style={{ fontSize: '12px' }}
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke={isDark ? "#2d3748" : "#e2e8f0"}
                   />
-                  <YAxis 
-                    stroke={isDark ? '#9ca3af' : '#6b7280'}
-                    style={{ fontSize: '12px' }}
+                  <XAxis
+                    dataKey="dia"
+                    stroke={isDark ? "#9ca3af" : "#6b7280"}
+                    style={{ fontSize: "12px" }}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: isDark ? '#1f2937' : 'white',
-                      border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-                      borderRadius: '12px',
-                      fontSize: '12px'
+                  <YAxis
+                    stroke={isDark ? "#9ca3af" : "#6b7280"}
+                    style={{ fontSize: "12px" }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: isDark ? "#1f2937" : "white",
+                      border: `1px solid ${isDark ? "#374151" : "#e5e7eb"}`,
+                      borderRadius: "12px",
+                      fontSize: "12px",
                     }}
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="ventas" 
-                    stroke="#63E6BE" 
+                  <Area
+                    type="monotone"
+                    dataKey="ventas"
+                    stroke="#63E6BE"
                     strokeWidth={3}
-                    fillOpacity={1} 
-                    fill="url(#colorVentas)" 
+                    fillOpacity={1}
+                    fill="url(#colorVentas)"
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -418,16 +545,19 @@ export default function Reportes() {
             >
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className={textPrimary} style={{ fontSize: '18px', fontWeight: 700 }}>
+                  <h3
+                    className={textPrimary}
+                    style={{ fontSize: "18px", fontWeight: 700 }}
+                  >
                     Métodos de Pago
                   </h3>
-                  <p className={textSecondary} style={{ fontSize: '13px' }}>
+                  <p className={textSecondary} style={{ fontSize: "13px" }}>
                     Distribución por tipo de pago
                   </p>
                 </div>
                 <CreditCard className="w-6 h-6 text-[#8B5CF6]" />
               </div>
-              
+
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -435,21 +565,26 @@ export default function Reportes() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) =>
+                      `${name} ${(percent * 100).toFixed(0)}%`
+                    }
                     outerRadius={100}
                     fill="#8884d8"
                     dataKey="value"
                   >
                     {datosMetodosPago.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: isDark ? '#1f2937' : 'white',
-                      border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-                      borderRadius: '12px',
-                      fontSize: '12px'
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: isDark ? "#1f2937" : "white",
+                      border: `1px solid ${isDark ? "#374151" : "#e5e7eb"}`,
+                      borderRadius: "12px",
+                      fontSize: "12px",
                     }}
                   />
                 </PieChart>
@@ -465,39 +600,48 @@ export default function Reportes() {
             >
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className={textPrimary} style={{ fontSize: '18px', fontWeight: 700 }}>
+                  <h3
+                    className={textPrimary}
+                    style={{ fontSize: "18px", fontWeight: 700 }}
+                  >
                     Estados de Pedidos
                   </h3>
-                  <p className={textSecondary} style={{ fontSize: '13px' }}>
+                  <p className={textSecondary} style={{ fontSize: "13px" }}>
                     Distribución por estado
                   </p>
                 </div>
                 <Package2 className="w-6 h-6 text-[#F59E0B]" />
               </div>
-              
+
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={datosPedidos}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#2d3748' : '#e2e8f0'} />
-                  <XAxis 
-                    dataKey="estado" 
-                    stroke={isDark ? '#9ca3af' : '#6b7280'}
-                    style={{ fontSize: '12px' }}
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke={isDark ? "#2d3748" : "#e2e8f0"}
                   />
-                  <YAxis 
-                    stroke={isDark ? '#9ca3af' : '#6b7280'}
-                    style={{ fontSize: '12px' }}
+                  <XAxis
+                    dataKey="estado"
+                    stroke={isDark ? "#9ca3af" : "#6b7280"}
+                    style={{ fontSize: "12px" }}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: isDark ? '#1f2937' : 'white',
-                      border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-                      borderRadius: '12px',
-                      fontSize: '12px'
+                  <YAxis
+                    stroke={isDark ? "#9ca3af" : "#6b7280"}
+                    style={{ fontSize: "12px" }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: isDark ? "#1f2937" : "white",
+                      border: `1px solid ${isDark ? "#374151" : "#e5e7eb"}`,
+                      borderRadius: "12px",
+                      fontSize: "12px",
                     }}
                   />
                   <Bar dataKey="cantidad" radius={[8, 8, 0, 0]}>
                     {datosPedidos.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Bar>
                 </BarChart>
@@ -513,37 +657,47 @@ export default function Reportes() {
             >
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className={textPrimary} style={{ fontSize: '18px', fontWeight: 700 }}>
+                  <h3
+                    className={textPrimary}
+                    style={{ fontSize: "18px", fontWeight: 700 }}
+                  >
                     Estados de Citas
                   </h3>
-                  <p className={textSecondary} style={{ fontSize: '13px' }}>
+                  <p className={textSecondary} style={{ fontSize: "13px" }}>
                     Distribución por estado
                   </p>
                 </div>
                 <Calendar className="w-6 h-6 text-[#3B82F6]" />
               </div>
-              
+
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={datosCitas}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#2d3748' : '#e2e8f0'} />
-                  <XAxis 
-                    dataKey="estado" 
-                    stroke={isDark ? '#9ca3af' : '#6b7280'}
-                    style={{ fontSize: '12px' }}
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke={isDark ? "#2d3748" : "#e2e8f0"}
                   />
-                  <YAxis 
-                    stroke={isDark ? '#9ca3af' : '#6b7280'}
-                    style={{ fontSize: '12px' }}
+                  <XAxis
+                    dataKey="estado"
+                    stroke={isDark ? "#9ca3af" : "#6b7280"}
+                    style={{ fontSize: "12px" }}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: isDark ? '#1f2937' : 'white',
-                      border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-                      borderRadius: '12px',
-                      fontSize: '12px'
+                  <YAxis
+                    stroke={isDark ? "#9ca3af" : "#6b7280"}
+                    style={{ fontSize: "12px" }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: isDark ? "#1f2937" : "white",
+                      border: `1px solid ${isDark ? "#374151" : "#e5e7eb"}`,
+                      borderRadius: "12px",
+                      fontSize: "12px",
                     }}
                   />
-                  <Bar dataKey="cantidad" fill="#3B82F6" radius={[8, 8, 0, 0]} />
+                  <Bar
+                    dataKey="cantidad"
+                    fill="#3B82F6"
+                    radius={[8, 8, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </motion.div>
@@ -551,7 +705,7 @@ export default function Reportes() {
         )}
 
         {/* Vista de Ventas */}
-        {vistaActual === 'ventas' && (
+        {vistaActual === "ventas" && (
           <motion.div
             key="ventas"
             initial={{ opacity: 0 }}
@@ -567,34 +721,40 @@ export default function Reportes() {
             >
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className={textPrimary} style={{ fontSize: '18px', fontWeight: 700 }}>
+                  <h3
+                    className={textPrimary}
+                    style={{ fontSize: "18px", fontWeight: 700 }}
+                  >
                     Ventas por Mes
                   </h3>
-                  <p className={textSecondary} style={{ fontSize: '13px' }}>
+                  <p className={textSecondary} style={{ fontSize: "13px" }}>
                     Análisis mensual del año actual
                   </p>
                 </div>
                 <BarChart3 className="w-6 h-6 text-[#63E6BE]" />
               </div>
-              
+
               <ResponsiveContainer width="100%" height={400}>
                 <BarChart data={datosVentasMensuales}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#2d3748' : '#e2e8f0'} />
-                  <XAxis 
-                    dataKey="mes" 
-                    stroke={isDark ? '#9ca3af' : '#6b7280'}
-                    style={{ fontSize: '12px' }}
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke={isDark ? "#2d3748" : "#e2e8f0"}
                   />
-                  <YAxis 
-                    stroke={isDark ? '#9ca3af' : '#6b7280'}
-                    style={{ fontSize: '12px' }}
+                  <XAxis
+                    dataKey="mes"
+                    stroke={isDark ? "#9ca3af" : "#6b7280"}
+                    style={{ fontSize: "12px" }}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: isDark ? '#1f2937' : 'white',
-                      border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-                      borderRadius: '12px',
-                      fontSize: '12px'
+                  <YAxis
+                    stroke={isDark ? "#9ca3af" : "#6b7280"}
+                    style={{ fontSize: "12px" }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: isDark ? "#1f2937" : "white",
+                      border: `1px solid ${isDark ? "#374151" : "#e5e7eb"}`,
+                      borderRadius: "12px",
+                      fontSize: "12px",
                     }}
                   />
                   <Bar dataKey="ventas" fill="#63E6BE" radius={[8, 8, 0, 0]} />
@@ -605,7 +765,7 @@ export default function Reportes() {
         )}
 
         {/* Vista de Productos */}
-        {vistaActual === 'productos' && (
+        {vistaActual === "productos" && (
           <motion.div
             key="productos"
             initial={{ opacity: 0 }}
@@ -621,42 +781,51 @@ export default function Reportes() {
             >
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className={textPrimary} style={{ fontSize: '18px', fontWeight: 700 }}>
+                  <h3
+                    className={textPrimary}
+                    style={{ fontSize: "18px", fontWeight: 700 }}
+                  >
                     Productos Más Vendidos
                   </h3>
-                  <p className={textSecondary} style={{ fontSize: '13px' }}>
+                  <p className={textSecondary} style={{ fontSize: "13px" }}>
                     Top 8 productos por cantidad vendida
                   </p>
                 </div>
                 <Star className="w-6 h-6 text-[#F59E0B]" />
               </div>
-              
+
               <ResponsiveContainer width="100%" height={400}>
                 <BarChart data={productosTopVentas} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#2d3748' : '#e2e8f0'} />
-                  <XAxis 
-                    type="number"
-                    stroke={isDark ? '#9ca3af' : '#6b7280'}
-                    style={{ fontSize: '12px' }}
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke={isDark ? "#2d3748" : "#e2e8f0"}
                   />
-                  <YAxis 
+                  <XAxis
+                    type="number"
+                    stroke={isDark ? "#9ca3af" : "#6b7280"}
+                    style={{ fontSize: "12px" }}
+                  />
+                  <YAxis
                     type="category"
                     dataKey="nombre"
                     width={150}
-                    stroke={isDark ? '#9ca3af' : '#6b7280'}
-                    style={{ fontSize: '11px' }}
+                    stroke={isDark ? "#9ca3af" : "#6b7280"}
+                    style={{ fontSize: "11px" }}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: isDark ? '#1f2937' : 'white',
-                      border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-                      borderRadius: '12px',
-                      fontSize: '12px'
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: isDark ? "#1f2937" : "white",
+                      border: `1px solid ${isDark ? "#374151" : "#e5e7eb"}`,
+                      borderRadius: "12px",
+                      fontSize: "12px",
                     }}
                   />
                   <Bar dataKey="cantidad" radius={[0, 8, 8, 0]}>
                     {productosTopVentas.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Bar>
                 </BarChart>
@@ -666,7 +835,7 @@ export default function Reportes() {
         )}
 
         {/* Vista de Citas */}
-        {vistaActual === 'citas' && (
+        {vistaActual === "citas" && (
           <motion.div
             key="citas"
             initial={{ opacity: 0 }}
@@ -680,32 +849,53 @@ export default function Reportes() {
               animate={{ opacity: 1, y: 0 }}
               className={`${bgCard} rounded-2xl border ${border} p-6 shadow-sm`}
             >
-              <h3 className={textPrimary} style={{ fontSize: '18px', fontWeight: 700, marginBottom: '24px' }}>
+              <h3
+                className={textPrimary}
+                style={{
+                  fontSize: "18px",
+                  fontWeight: 700,
+                  marginBottom: "24px",
+                }}
+              >
                 Estadísticas de Citas
               </h3>
-              
+
               <div className="space-y-4">
                 {datosCitas.map((item, index) => {
                   const color = COLORS[index % COLORS.length];
-                  const total = datosCitas.reduce((sum, d) => sum + d.cantidad, 0);
-                  const porcentaje = total > 0 ? (item.cantidad / total * 100).toFixed(1) : 0;
-                  
+                  const total = datosCitas.reduce(
+                    (sum, d) => sum + d.cantidad,
+                    0
+                  );
+                  const porcentaje =
+                    total > 0 ? ((item.cantidad / total) * 100).toFixed(1) : 0;
+
                   return (
                     <div key={item.estado}>
                       <div className="flex items-center justify-between mb-2">
-                        <span className={textPrimary} style={{ fontSize: '14px', fontWeight: 600 }}>
+                        <span
+                          className={textPrimary}
+                          style={{ fontSize: "14px", fontWeight: 600 }}
+                        >
                           {item.estado}
                         </span>
-                        <span className={textSecondary} style={{ fontSize: '13px' }}>
+                        <span
+                          className={textSecondary}
+                          style={{ fontSize: "13px" }}
+                        >
                           {item.cantidad} ({porcentaje}%)
                         </span>
                       </div>
-                      <div className={`w-full h-2.5 rounded-full ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                        <div 
+                      <div
+                        className={`w-full h-2.5 rounded-full ${
+                          isDark ? "bg-gray-800" : "bg-gray-100"
+                        }`}
+                      >
+                        <div
                           className="h-2.5 rounded-full transition-all duration-500"
-                          style={{ 
+                          style={{
                             width: `${porcentaje}%`,
-                            backgroundColor: color
+                            backgroundColor: color,
                           }}
                         />
                       </div>
@@ -716,10 +906,13 @@ export default function Reportes() {
 
               <div className={`mt-6 pt-6 border-t ${border}`}>
                 <div className="flex items-center justify-between">
-                  <span className={textSecondary} style={{ fontSize: '14px' }}>
+                  <span className={textSecondary} style={{ fontSize: "14px" }}>
                     Total de Citas
                   </span>
-                  <span className={textPrimary} style={{ fontSize: '24px', fontWeight: 700 }}>
+                  <span
+                    className={textPrimary}
+                    style={{ fontSize: "24px", fontWeight: 700 }}
+                  >
                     {datosCitas.reduce((sum, d) => sum + d.cantidad, 0)}
                   </span>
                 </div>
@@ -733,10 +926,17 @@ export default function Reportes() {
               transition={{ delay: 0.1 }}
               className={`${bgCard} rounded-2xl border ${border} p-6 shadow-sm`}
             >
-              <h3 className={textPrimary} style={{ fontSize: '18px', fontWeight: 700, marginBottom: '24px' }}>
+              <h3
+                className={textPrimary}
+                style={{
+                  fontSize: "18px",
+                  fontWeight: 700,
+                  marginBottom: "24px",
+                }}
+              >
                 Distribución de Citas
               </h3>
-              
+
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -750,15 +950,18 @@ export default function Reportes() {
                     dataKey="cantidad"
                   >
                     {datosCitas.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: isDark ? '#1f2937' : 'white',
-                      border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-                      borderRadius: '12px',
-                      fontSize: '12px'
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: isDark ? "#1f2937" : "white",
+                      border: `1px solid ${isDark ? "#374151" : "#e5e7eb"}`,
+                      borderRadius: "12px",
+                      fontSize: "12px",
                     }}
                   />
                 </PieChart>
@@ -777,18 +980,21 @@ export default function Reportes() {
       >
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
           <div className="text-white">
-            <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>
+            <h2
+              style={{ fontSize: "24px", fontWeight: 700, marginBottom: "8px" }}
+            >
               Reporte Ejecutivo Completo
             </h2>
-            <p style={{ fontSize: '14px', opacity: 0.9 }}>
-              Descarga un análisis completo con todas las métricas, gráficos y estadísticas del período seleccionado
+            <p style={{ fontSize: "14px", opacity: 0.9 }}>
+              Descarga un análisis completo con todas las métricas, gráficos y
+              estadísticas del período seleccionado
             </p>
           </div>
-          
+
           <Button
-            onClick={() => handleDownloadReport('ejecutivo')}
+            onClick={() => handleDownloadReport("ejecutivo")}
             className="h-12 px-8 rounded-xl bg-white text-[#3D4756] hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 whitespace-nowrap"
-            style={{ fontWeight: 600, fontSize: '15px' }}
+            style={{ fontWeight: 600, fontSize: "15px" }}
           >
             <Download className="w-5 h-5" />
             Descargar Reporte PDF
@@ -801,16 +1007,32 @@ export default function Reportes() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.8 }}
-        className={`${isDark ? 'bg-blue-900 bg-opacity-20 border-blue-800' : 'bg-blue-50 border-blue-100'} rounded-xl p-4 border`}
+        className={`${
+          isDark
+            ? "bg-blue-900 bg-opacity-20 border-blue-800"
+            : "bg-blue-50 border-blue-100"
+        } rounded-xl p-4 border`}
       >
         <div className="flex items-start gap-3">
-          <AlertCircle className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'} mt-0.5`} />
+          <AlertCircle
+            className={`w-5 h-5 ${
+              isDark ? "text-blue-400" : "text-blue-600"
+            } mt-0.5`}
+          />
           <div>
-            <p className={`${isDark ? 'text-blue-300' : 'text-blue-900'}`} style={{ fontSize: '14px', fontWeight: 600 }}>
+            <p
+              className={`${isDark ? "text-blue-300" : "text-blue-900"}`}
+              style={{ fontSize: "14px", fontWeight: 600 }}
+            >
               Datos en Tiempo Real
             </p>
-            <p className={`${isDark ? 'text-blue-400' : 'text-blue-700'} mt-1`} style={{ fontSize: '13px' }}>
-              Todos los gráficos y estadísticas se actualizan automáticamente con los datos del sistema. Los reportes pueden exportarse en formato PDF y Excel.
+            <p
+              className={`${isDark ? "text-blue-400" : "text-blue-700"} mt-1`}
+              style={{ fontSize: "13px" }}
+            >
+              Todos los gráficos y estadísticas se actualizan automáticamente
+              con los datos del sistema. Los reportes pueden exportarse en
+              formato PDF y Excel.
             </p>
           </div>
         </div>

@@ -1,63 +1,81 @@
-import { useState } from 'react';
-import { User, Mail, Phone, MapPin, Lock, Camera, Save, Edit, X } from 'lucide-react';
-import { useDarkMode } from '../hooks/useDarkMode';
-import { motion } from 'motion/react';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { toast } from 'sonner@2.0.3';
+import { useState } from "react";
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Lock,
+  Camera,
+  Save,
+  Edit,
+  X,
+} from "lucide-react";
+import { useDarkMode } from "../hooks/useDarkMode";
+import { motion } from "motion/react";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { toast } from "sonner";
 
 interface MiPerfilProps {
   user: any;
 }
 
 export default function MiPerfil({ user }: MiPerfilProps) {
-  const { isDark, bgCard, textPrimary, textSecondary, border, inputBg, inputBorder } = useDarkMode();
+  const {
+    isDark,
+    bgCard,
+    textPrimary,
+    textSecondary,
+    border,
+    inputBg,
+    inputBorder,
+  } = useDarkMode();
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const [formData, setFormData] = useState({
-    nombre: user?.nombre || 'Juan Cliente',
-    email: user?.email || 'cliente@syspharma.com',
-    telefono: user?.telefono || '+57 300 555 1234',
-    documento: '1234567890',
-    fechaNacimiento: '1990-01-15'
+    nombre: user?.nombre || "Juan Cliente",
+    email: user?.email || "cliente@syspharma.com",
+    telefono: user?.telefono || "+57 300 555 1234",
+    documento: "1234567890",
+    fechaNacimiento: "1990-01-15",
   });
 
   const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   const [errors, setErrors] = useState({
-    nombre: '',
-    email: '',
-    telefono: '',
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+    nombre: "",
+    email: "",
+    telefono: "",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   const validateEmail = (email: string) => {
-    if (!email) return 'El email es requerido';
+    if (!email) return "El email es requerido";
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) return 'Email inválido';
-    return '';
+    if (!emailRegex.test(email)) return "Email inválido";
+    return "";
   };
 
   const validatePhone = (phone: string) => {
-    if (!phone) return 'El teléfono es requerido';
-    if (phone.length < 10) return 'Teléfono inválido';
-    return '';
+    if (!phone) return "El teléfono es requerido";
+    if (phone.length < 10) return "Teléfono inválido";
+    return "";
   };
 
   const validatePassword = (password: string) => {
-    if (!password) return 'La contraseña es requerida';
-    if (password.length < 8) return 'Mínimo 8 caracteres';
-    if (!/[A-Z]/.test(password)) return 'Debe tener al menos una mayúscula';
-    if (!/[a-z]/.test(password)) return 'Debe tener al menos una minúscula';
-    if (!/[0-9]/.test(password)) return 'Debe tener al menos un número';
-    return '';
+    if (!password) return "La contraseña es requerida";
+    if (password.length < 8) return "Mínimo 8 caracteres";
+    if (!/[A-Z]/.test(password)) return "Debe tener al menos una mayúscula";
+    if (!/[a-z]/.test(password)) return "Debe tener al menos una minúscula";
+    if (!/[0-9]/.test(password)) return "Debe tener al menos un número";
+    return "";
   };
 
   const handleSaveProfile = () => {
@@ -69,39 +87,56 @@ export default function MiPerfil({ user }: MiPerfilProps) {
       return;
     }
 
-    toast.success('Perfil actualizado exitosamente');
+    toast.success("Perfil actualizado exitosamente");
     setIsEditing(false);
   };
 
   const handleChangePassword = () => {
-    const currentError = !passwordData.currentPassword ? 'Ingresa tu contraseña actual' : '';
+    const currentError = !passwordData.currentPassword
+      ? "Ingresa tu contraseña actual"
+      : "";
     const newError = validatePassword(passwordData.newPassword);
-    const confirmError = passwordData.newPassword !== passwordData.confirmPassword 
-      ? 'Las contraseñas no coinciden' 
-      : '';
+    const confirmError =
+      passwordData.newPassword !== passwordData.confirmPassword
+        ? "Las contraseñas no coinciden"
+        : "";
 
     setErrors({
       ...errors,
       currentPassword: currentError,
       newPassword: newError,
-      confirmPassword: confirmError
+      confirmPassword: confirmError,
     });
 
     if (currentError || newError || confirmError) return;
 
-    toast.success('Contraseña actualizada exitosamente');
+    toast.success("Contraseña actualizada exitosamente");
     setIsChangingPassword(false);
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setPasswordData({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
   };
 
   return (
     <div className="space-y-6">
       {/* Encabezado */}
       <div>
-        <h2 className={`${textPrimary} transition-colors duration-300`} style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.02em' }}>
+        <h2
+          className={`${textPrimary} transition-colors duration-300`}
+          style={{
+            fontSize: "28px",
+            fontWeight: 700,
+            letterSpacing: "-0.02em",
+          }}
+        >
           Mi Perfil
         </h2>
-        <p className={`${textSecondary} mt-1 transition-colors duration-300`} style={{ fontSize: '14px' }}>
+        <p
+          className={`${textSecondary} mt-1 transition-colors duration-300`}
+          style={{ fontSize: "14px" }}
+        >
           Gestiona tu información personal
         </p>
       </div>
@@ -122,16 +157,22 @@ export default function MiPerfil({ user }: MiPerfilProps) {
                 <Camera className="w-5 h-5 text-white" />
               </button>
             </div>
-            
-            <h3 className={textPrimary} style={{ fontSize: '20px', fontWeight: 700 }}>
+
+            <h3
+              className={textPrimary}
+              style={{ fontSize: "20px", fontWeight: 700 }}
+            >
               {formData.nombre}
             </h3>
-            <p className={textSecondary} style={{ fontSize: '14px' }} className="mb-1">
+            <p className={`${textSecondary} mb-1`} style={{ fontSize: "14px" }}>
               {formData.email}
             </p>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 mt-2">
-              <span className="text-purple-500 text-xs" style={{ fontWeight: 600 }}>
-                {user?.rol || 'Cliente'}
+              <span
+                className="text-purple-500 text-xs"
+                style={{ fontWeight: 600 }}
+              >
+                {user?.rol || "Cliente"}
               </span>
             </div>
 
@@ -139,7 +180,7 @@ export default function MiPerfil({ user }: MiPerfilProps) {
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <Phone className={`w-4 h-4 ${textSecondary}`} />
-                  <span className={textSecondary} style={{ fontSize: '13px' }}>
+                  <span className={textSecondary} style={{ fontSize: "13px" }}>
                     {formData.telefono}
                   </span>
                 </div>
@@ -157,10 +198,13 @@ export default function MiPerfil({ user }: MiPerfilProps) {
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className={textPrimary} style={{ fontSize: '20px', fontWeight: 700 }}>
+              <h3
+                className={textPrimary}
+                style={{ fontSize: "20px", fontWeight: 700 }}
+              >
                 Información Personal
               </h3>
-              <p className={textSecondary} style={{ fontSize: '13px' }}>
+              <p className={textSecondary} style={{ fontSize: "13px" }}>
                 Actualiza tus datos personales
               </p>
             </div>
@@ -194,26 +238,36 @@ export default function MiPerfil({ user }: MiPerfilProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className={`block ${textPrimary} mb-2`} style={{ fontSize: '13px', fontWeight: 600 }}>
+              <label
+                className={`block ${textPrimary} mb-2`}
+                style={{ fontSize: "13px", fontWeight: 600 }}
+              >
                 Nombre Completo
               </label>
               <Input
                 type="text"
                 value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, nombre: e.target.value })
+                }
                 disabled={!isEditing}
                 className="h-11 rounded-xl"
               />
             </div>
 
             <div>
-              <label className={`block ${textPrimary} mb-2`} style={{ fontSize: '13px', fontWeight: 600 }}>
+              <label
+                className={`block ${textPrimary} mb-2`}
+                style={{ fontSize: "13px", fontWeight: 600 }}
+              >
                 Email
               </label>
               <Input
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 disabled={!isEditing}
                 className="h-11 rounded-xl"
               />
@@ -223,13 +277,18 @@ export default function MiPerfil({ user }: MiPerfilProps) {
             </div>
 
             <div>
-              <label className={`block ${textPrimary} mb-2`} style={{ fontSize: '13px', fontWeight: 600 }}>
+              <label
+                className={`block ${textPrimary} mb-2`}
+                style={{ fontSize: "13px", fontWeight: 600 }}
+              >
                 Teléfono
               </label>
               <Input
                 type="tel"
                 value={formData.telefono}
-                onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, telefono: e.target.value })
+                }
                 disabled={!isEditing}
                 className="h-11 rounded-xl"
               />
@@ -239,45 +298,58 @@ export default function MiPerfil({ user }: MiPerfilProps) {
             </div>
 
             <div>
-              <label className={`block ${textPrimary} mb-2`} style={{ fontSize: '13px', fontWeight: 600 }}>
+              <label
+                className={`block ${textPrimary} mb-2`}
+                style={{ fontSize: "13px", fontWeight: 600 }}
+              >
                 Documento
               </label>
               <Input
                 type="text"
                 value={formData.documento}
-                onChange={(e) => setFormData({ ...formData, documento: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, documento: e.target.value })
+                }
                 disabled={!isEditing}
                 className="h-11 rounded-xl"
               />
             </div>
 
             <div>
-              <label className={`block ${textPrimary} mb-2`} style={{ fontSize: '13px', fontWeight: 600 }}>
+              <label
+                className={`block ${textPrimary} mb-2`}
+                style={{ fontSize: "13px", fontWeight: 600 }}
+              >
                 Fecha de Nacimiento
               </label>
               <Input
                 type="date"
                 value={formData.fechaNacimiento}
-                onChange={(e) => setFormData({ ...formData, fechaNacimiento: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, fechaNacimiento: e.target.value })
+                }
                 disabled={!isEditing}
                 className="h-11 rounded-xl"
               />
             </div>
 
             <div>
-              <label className={`block ${textPrimary} mb-2`} style={{ fontSize: '13px', fontWeight: 600 }}>
+              <label
+                className={`block ${textPrimary} mb-2`}
+                style={{ fontSize: "13px", fontWeight: 600 }}
+              >
                 Ciudad
               </label>
               <Input
                 type="text"
                 value={formData.ciudad}
-                onChange={(e) => setFormData({ ...formData, ciudad: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, ciudad: e.target.value })
+                }
                 disabled={!isEditing}
                 className="h-11 rounded-xl"
               />
             </div>
-
-            
           </div>
         </motion.div>
 
@@ -294,10 +366,13 @@ export default function MiPerfil({ user }: MiPerfilProps) {
                 <Lock className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className={textPrimary} style={{ fontSize: '20px', fontWeight: 700 }}>
+                <h3
+                  className={textPrimary}
+                  style={{ fontSize: "20px", fontWeight: 700 }}
+                >
                   Seguridad
                 </h3>
-                <p className={textSecondary} style={{ fontSize: '13px' }}>
+                <p className={textSecondary} style={{ fontSize: "13px" }}>
                   Cambia tu contraseña
                 </p>
               </div>
@@ -316,50 +391,80 @@ export default function MiPerfil({ user }: MiPerfilProps) {
           {isChangingPassword && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className={`block ${textPrimary} mb-2`} style={{ fontSize: '13px', fontWeight: 600 }}>
+                <label
+                  className={`block ${textPrimary} mb-2`}
+                  style={{ fontSize: "13px", fontWeight: 600 }}
+                >
                   Contraseña Actual
                 </label>
                 <Input
                   type="password"
                   value={passwordData.currentPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                  onChange={(e) =>
+                    setPasswordData({
+                      ...passwordData,
+                      currentPassword: e.target.value,
+                    })
+                  }
                   className="h-11 rounded-xl"
                   placeholder="••••••••"
                 />
                 {errors.currentPassword && (
-                  <p className="text-red-400 text-xs mt-1">{errors.currentPassword}</p>
+                  <p className="text-red-400 text-xs mt-1">
+                    {errors.currentPassword}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label className={`block ${textPrimary} mb-2`} style={{ fontSize: '13px', fontWeight: 600 }}>
+                <label
+                  className={`block ${textPrimary} mb-2`}
+                  style={{ fontSize: "13px", fontWeight: 600 }}
+                >
                   Nueva Contraseña
                 </label>
                 <Input
                   type="password"
                   value={passwordData.newPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                  onChange={(e) =>
+                    setPasswordData({
+                      ...passwordData,
+                      newPassword: e.target.value,
+                    })
+                  }
                   className="h-11 rounded-xl"
                   placeholder="••••••••"
                 />
                 {errors.newPassword && (
-                  <p className="text-red-400 text-xs mt-1">{errors.newPassword}</p>
+                  <p className="text-red-400 text-xs mt-1">
+                    {errors.newPassword}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label className={`block ${textPrimary} mb-2`} style={{ fontSize: '13px', fontWeight: 600 }}>
+                <label
+                  className={`block ${textPrimary} mb-2`}
+                  style={{ fontSize: "13px", fontWeight: 600 }}
+                >
                   Confirmar Contraseña
                 </label>
                 <Input
                   type="password"
                   value={passwordData.confirmPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                  onChange={(e) =>
+                    setPasswordData({
+                      ...passwordData,
+                      confirmPassword: e.target.value,
+                    })
+                  }
                   className="h-11 rounded-xl"
                   placeholder="••••••••"
                 />
                 {errors.confirmPassword && (
-                  <p className="text-red-400 text-xs mt-1">{errors.confirmPassword}</p>
+                  <p className="text-red-400 text-xs mt-1">
+                    {errors.confirmPassword}
+                  </p>
                 )}
               </div>
 
@@ -367,7 +472,11 @@ export default function MiPerfil({ user }: MiPerfilProps) {
                 <Button
                   onClick={() => {
                     setIsChangingPassword(false);
-                    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                    setPasswordData({
+                      currentPassword: "",
+                      newPassword: "",
+                      confirmPassword: "",
+                    });
                   }}
                   className="bg-gray-500 hover:bg-gray-600 text-white rounded-xl h-10 px-6"
                 >
@@ -384,10 +493,14 @@ export default function MiPerfil({ user }: MiPerfilProps) {
           )}
 
           {!isChangingPassword && (
-            <div className={`p-4 rounded-xl ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
-              <p className={textSecondary} style={{ fontSize: '13px' }}>
-                Por seguridad, te recomendamos cambiar tu contraseña periódicamente.
-                Última actualización: 15 de noviembre, 2024
+            <div
+              className={`p-4 rounded-xl ${
+                isDark ? "bg-white/5" : "bg-gray-50"
+              }`}
+            >
+              <p className={textSecondary} style={{ fontSize: "13px" }}>
+                Por seguridad, te recomendamos cambiar tu contraseña
+                periódicamente. Última actualización: 15 de noviembre, 2024
               </p>
             </div>
           )}
