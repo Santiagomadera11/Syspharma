@@ -9,7 +9,7 @@ import {
   validatePositiveNumber,
   validateNonNegativeNumber,
 } from "../../utils/validation";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 
 type Producto = {
   id: string;

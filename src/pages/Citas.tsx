@@ -19,7 +19,7 @@ import {
   UserCircle,
   Stethoscope,
 } from "lucide-react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import {
@@ -224,6 +224,21 @@ export default function Citas({ user }: CitasProps) {
     useState(new Date());
   const [diasSeleccionadosTemp, setDiasSeleccionadosTemp] = useState<string[]>(
     []
+  );
+  const [
+    modoSeleccionarHorasNoDisponibles,
+    setModoSeleccionarHorasNoDisponibles,
+  ] = useState<boolean>(false);
+
+  // Permisos: determina si el usuario actual puede editar la disponibilidad.
+  // Si el componente recibe `user` (desde props/context), intentamos inferir el permiso
+  // a partir del rol. Por defecto permitimos la edición a administradores y personal médico/empleado.
+  const canEditAvailability = Boolean(
+    user &&
+      typeof user.rol === "string" &&
+      (user.rol.toLowerCase().includes("admin") ||
+        user.rol.toLowerCase().includes("medic") ||
+        user.rol.toLowerCase().includes("emple"))
   );
 
   // ✅ Usar hooks globales para citas y servicios
@@ -575,20 +590,40 @@ export default function Citas({ user }: CitasProps) {
     );
   };
 
-  // Toggle para marcar/quitar un horario como disponible para un día de semana
+  // Toggle para marcar/quitar un horario como NO disponible para un día de semana
+  // Internamente la storage sigue guardando `disponibilidad` como horas disponibles,
+  // pero aquí manejamos la operación desde la perspectiva de `horasNOdisponibles`.
   const toggleHorarioDisponibilidad = (
     empleado: Empleado,
     diaSemana: string,
     hora: string
   ) => {
-    const horarios = empleado.disponibilidad[diaSemana] || [];
-    const nuevos = horarios.includes(hora)
-      ? horarios.filter((h) => h !== hora)
-      : [...horarios, hora];
+    const horariosDisponibles = empleado.disponibilidad[diaSemana] || [];
+
+    // Calcular las horas NO disponibles actuales como el complemento respecto a HORARIOS_DIA
+    const horariosNoDisponiblesActuales = HORARIOS_DIA.filter(
+      (h) => !horariosDisponibles.includes(h)
+    );
+
+    // Toggle en el arreglo de NO disponibles
+    const nuevosNoDisponibles = horariosNoDisponiblesActuales.includes(hora)
+      ? horariosNoDisponiblesActuales.filter((h) => h !== hora)
+      : [...horariosNoDisponiblesActuales, hora];
+
+    // A partir del nuevo conjunto de NO disponibles, recalculamos las horas disponibles
+    const nuevosDisponibles = HORARIOS_DIA.filter(
+      (h) => !nuevosNoDisponibles.includes(h)
+    );
 
     const empleadosActualizados = empleados.map((e) =>
       e.id === empleado.id
-        ? { ...e, disponibilidad: { ...e.disponibilidad, [diaSemana]: nuevos } }
+        ? {
+            ...e,
+            disponibilidad: {
+              ...e.disponibilidad,
+              [diaSemana]: nuevosDisponibles,
+            },
+          }
         : e
     );
 
@@ -601,23 +636,28 @@ export default function Citas({ user }: CitasProps) {
       setEmpleadoSeleccionado(actualizado);
     }
 
-    // Persistir disponibilidad en storage
+    // Persistir disponibilidad recalculada en storage
     try {
       // @ts-ignore
       if (typeof updateUsuario === "function") {
         // @ts-ignore
         updateUsuario(empleado.id, {
-          disponibilidad: { ...empleado.disponibilidad, [diaSemana]: nuevos },
+          disponibilidad: {
+            ...empleado.disponibilidad,
+            [diaSemana]: nuevosDisponibles,
+          },
         });
       }
     } catch (err) {
       console.warn("No se pudo persistir disponibilidad:", err);
     }
 
+    // Mensaje: si ahora la hora está en nuevosNoDisponibles => fue marcada como NO disponible
+    const estaAhoraNoDisponible = nuevosNoDisponibles.includes(hora);
     toast.success(
-      nuevos.includes(hora)
-        ? "Horario marcado como disponible"
-        : "Horario marcado como no disponible",
+      estaAhoraNoDisponible
+        ? "Horario marcado como no disponible"
+        : "Horario marcado como disponible",
       {
         style: {
           background: "#14B8A6",
@@ -1242,14 +1282,15 @@ export default function Citas({ user }: CitasProps) {
             >
               {/* Encabezado días de la semana */}
               <div className="grid grid-cols-7 gap-2 mb-4">
-                {DIAS_SEMANA.map((dia) => (
-                  <div key={dia} className="text-center py-2">
-                    <span
-                      className={textSecondary}
-                      style={{ fontSize: "13px", fontWeight: 600 }}
-                    >
-                      {dia}
-                    </span>
+                {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((d) => (
+                  <div
+                    key={d}
+                    className={`text-center text-sm font-semibold ${
+                      isDark ? "text-gray-200" : "text-gray-600"
+                    }`}
+                    style={{ fontSize: "12px" }}
+                  >
+                    {d}
                   </div>
                 ))}
               </div>
@@ -1257,44 +1298,39 @@ export default function Citas({ user }: CitasProps) {
               {/* Días del mes */}
               <div className="grid grid-cols-7 gap-2">
                 {getDiasDelMes(fechaActual).map((dia, index) => {
-                  if (!dia) {
+                  if (!dia)
                     return (
                       <div key={`empty-${index}`} className="aspect-square" />
                     );
-                  }
 
-                  const numCitas = getNumeroCitasDia(dia);
                   const esHoy =
                     dia.toDateString() === new Date().toDateString();
-                  const esSeleccionado =
-                    dia.toDateString() === fechaSeleccionada.toDateString();
+                  const esNoDisponible = empleadoSeleccionado
+                    ? esDiaNoDisponible(empleadoSeleccionado, dia)
+                    : false;
+
+                  const esSeleccionado = esNoDisponible;
 
                   return (
                     <motion.div
                       key={dia.toISOString()}
-                      whileHover={{ scale: 1.05 }}
+                      whileHover={{ scale: 1.03 }}
                       onClick={() => {
-                        setFechaSeleccionada(dia);
-                        if (numCitas > 0) {
-                          setCitasDiaModalOpen(true);
-                        }
+                        if (empleadoSeleccionado)
+                          toggleDiaNoDisponible(empleadoSeleccionado, dia);
                       }}
-                      className={`aspect-square rounded-xl p-2 cursor-pointer transition-all duration-200 ${
+                      className={`aspect-square rounded-xl p-2 cursor-pointer transition-all duration-200 flex flex-col items-center justify-center ${
                         esSeleccionado
-                          ? "bg-[#14B8A6] shadow-lg"
+                          ? "bg-red-500 text-white shadow-md"
                           : esHoy
                           ? `${
                               isDark ? "bg-[#1f6feb1a]" : "bg-blue-50"
                             } border-2 border-[#14B8A6]`
-                          : numCitas > 0
-                          ? `${
-                              isDark
-                                ? "bg-[#161b22] hover:bg-[#1f6feb1a]"
-                                : "bg-gray-50 hover:bg-gray-100"
-                            }`
                           : `${
-                              isDark ? "hover:bg-[#161b22]" : "hover:bg-gray-50"
-                            }`
+                              isDark
+                                ? "hover:bg-[#161b22]"
+                                : "hover:bg-gray-100"
+                            } border ${border}`
                       }`}
                     >
                       <div className="flex flex-col h-full">
@@ -1314,7 +1350,7 @@ export default function Citas({ user }: CitasProps) {
                           {dia.getDate()}
                         </span>
 
-                        {/* 🔴 Mostrar citas del día en el calendario */}
+                        {/* Mostrar citas del día */}
                         {getCitasDelDia(dia)
                           .slice(0, 2)
                           .map((cita) => (
@@ -1338,7 +1374,7 @@ export default function Citas({ user }: CitasProps) {
                             </div>
                           ))}
 
-                        {numCitas > 2 && (
+                        {getCitasDelDia(dia).length > 2 && (
                           <div className="mt-auto">
                             <span
                               className={`inline-block px-2 py-0.5 rounded-full ${
@@ -1348,7 +1384,7 @@ export default function Citas({ user }: CitasProps) {
                               }`}
                               style={{ fontSize: "10px", fontWeight: 600 }}
                             >
-                              +{numCitas - 2} más
+                              +{getCitasDelDia(dia).length - 2} más
                             </span>
                           </div>
                         )}
@@ -1909,6 +1945,26 @@ export default function Citas({ user }: CitasProps) {
                 </h3>
 
                 <div className="space-y-4">
+                  <div className="flex items-center justify-end mb-2">
+                    <label className={`${textSecondary} mr-2 text-sm`}>
+                      Seleccionar:
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setModoSeleccionarHorasNoDisponibles((s) => !s)
+                      }
+                      className={`px-3 py-1 rounded-lg text-sm font-semibold transition-colors duration-200 ${
+                        modoSeleccionarHorasNoDisponibles
+                          ? "bg-red-500 text-white"
+                          : "bg-green-500 text-white"
+                      }`}
+                    >
+                      {modoSeleccionarHorasNoDisponibles
+                        ? "Horas NO disponibles"
+                        : "Horas disponibles"}
+                    </button>
+                  </div>
                   {[
                     "Lunes",
                     "Martes",
@@ -1920,6 +1976,9 @@ export default function Citas({ user }: CitasProps) {
                   ].map((dia) => {
                     const horariosDisponibles =
                       empleadoSeleccionado.disponibilidad[dia] || [];
+
+                    const cantidadNoDisponibles =
+                      HORARIOS_DIA.length - horariosDisponibles.length;
 
                     return (
                       <div
@@ -1939,14 +1998,27 @@ export default function Citas({ user }: CitasProps) {
                             className={textSecondary}
                             style={{ fontSize: "12px" }}
                           >
-                            {horariosDisponibles.length} horarios disponibles
+                            {modoSeleccionarHorasNoDisponibles
+                              ? `${cantidadNoDisponibles} horarios NO disponibles`
+                              : `${horariosDisponibles.length} horarios disponibles`}
                           </span>
                         </div>
 
                         <div className="grid grid-cols-6 md:grid-cols-10 gap-2">
                           {HORARIOS_DIA.map((hora) => {
-                            const estaDisponible =
-                              horariosDisponibles.includes(hora);
+                            const horariosNoDisponibles = HORARIOS_DIA.filter(
+                              (h) => !horariosDisponibles.includes(h)
+                            );
+                            const esNoDisponible =
+                              horariosNoDisponibles.includes(hora);
+
+                            const claseDisponible = isDark
+                              ? "bg-gray-800 text-white"
+                              : "bg-gray-100 text-gray-700";
+
+                            const claseHora = esNoDisponible
+                              ? "bg-red-600 text-white"
+                              : claseDisponible;
 
                             return (
                               <button
@@ -1958,9 +2030,7 @@ export default function Citas({ user }: CitasProps) {
                                   if (!canEditAvailability) {
                                     toast.error(
                                       "No tienes permiso para modificar horarios",
-                                      {
-                                        duration: 2000,
-                                      }
+                                      { duration: 2000 }
                                     );
                                     return;
                                   }
@@ -1972,15 +2042,7 @@ export default function Citas({ user }: CitasProps) {
                                     );
                                   }
                                 }}
-                                className={`h-10 rounded-lg transition-all duration-200 ${
-                                  estaDisponible
-                                    ? "bg-[#14B8A6] text-white hover:bg-[#0D9488]"
-                                    : `${
-                                        isDark
-                                          ? "bg-[#0d1117] hover:bg-[#14B8A6]"
-                                          : "bg-white hover:bg-[#14B8A6]"
-                                      } ${textSecondary} hover:text-white border ${border}`
-                                }`}
+                                className={`h-10 rounded-lg transition-all duration-200 ${claseHora} border ${border}`}
                                 style={{ fontSize: "11px", fontWeight: 600 }}
                               >
                                 {hora}

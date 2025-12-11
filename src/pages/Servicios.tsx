@@ -15,7 +15,7 @@ import {
   ChevronRight,
   Check,
 } from "lucide-react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import {
@@ -765,7 +765,7 @@ export default function Servicios({ user }: ServiciosProps) {
                       </span>
                     </div>
                     <span
-                      className="text-[#14B8A6]"
+                      className="text-white"
                       style={{ fontSize: "16px", fontWeight: 700 }}
                     >
                       {typeof servicio.precio === "number" &&

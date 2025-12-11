@@ -14,7 +14,7 @@ import {
   Info,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { useDarkMode } from "../hooks/useDarkMode";
 import { useProductos, useCategorias } from "../hooks/useEntities";
 import { Button } from "../components/ui/button";

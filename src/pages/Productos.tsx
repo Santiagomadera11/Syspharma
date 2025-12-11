@@ -9,7 +9,7 @@ import {
   Download,
   Eye,
 } from "lucide-react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import {
@@ -146,25 +146,25 @@ export default function Productos({ user }: ProductosProps) {
       file: File,
       maxSize = 800,
       quality = 0.7
-    ): Promise<string> => {
-      return new Promise((resolve, reject) => {
+    ): Promise<string> =>
+      new Promise((resolve, reject) => {
         const url = URL.createObjectURL(file);
         const img = new Image();
         img.onload = () => {
-          // calcular dimensiones manteniendo ratio
-          const canvas = document.createElement("canvas");
-          let { width, height } = img;
-          if (width > height) {
-            if (width > maxSize) {
-              height = Math.round((height *= maxSize / width));
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxSize || height > maxSize) {
+            if (width > height) {
+              height = Math.round((height * maxSize) / width);
               width = maxSize;
-            }
-          } else {
-            if (height > maxSize) {
-              width = Math.round((width *= maxSize / height));
+            } else {
+              width = Math.round((width * maxSize) / height);
               height = maxSize;
             }
           }
+
+          const canvas = document.createElement("canvas");
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext("2d");
@@ -174,7 +174,7 @@ export default function Productos({ user }: ProductosProps) {
             return;
           }
           ctx.drawImage(img, 0, 0, width, height);
-          // Convertir a JPEG para compresión, fallback a png si falla
+
           try {
             const dataUrl = canvas.toDataURL("image/jpeg", quality);
             URL.revokeObjectURL(url);
@@ -196,7 +196,6 @@ export default function Productos({ user }: ProductosProps) {
         };
         img.src = url;
       });
-    };
 
     (async () => {
       try {
@@ -548,11 +547,17 @@ export default function Productos({ user }: ProductosProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value=" ">Todas las categorías</SelectItem>
-              {categoriasActivas.map((cat) => (
-                <SelectItem key={cat.id} value={cat.nombre}>
-                  {cat.nombre}
+              {categoriasActivas.length === 0 ? (
+                <SelectItem value="__none" disabled>
+                  No hay categorías
                 </SelectItem>
-              ))}
+              ) : (
+                categoriasActivas.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.nombre}>
+                    {cat.nombre}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -1368,11 +1373,17 @@ export default function Productos({ user }: ProductosProps) {
                   <SelectValue placeholder="Seleccionar categoría" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categoriasActivas.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.nombre}>
-                      {cat.nombre}
+                  {categoriasActivas.length === 0 ? (
+                    <SelectItem value="__none" disabled>
+                      No hay categorías
                     </SelectItem>
-                  ))}
+                  ) : (
+                    categoriasActivas.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.nombre}>
+                        {cat.nombre}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

@@ -14,7 +14,7 @@ import { useDarkMode } from "../hooks/useDarkMode";
 import { motion } from "motion/react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 
 interface MiPerfilProps {
   user: any;

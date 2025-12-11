@@ -5,15 +5,45 @@
 ### 1. Actualizar Imports (Línea ~1-25)
 
 ```typescript
-import { useState, useEffect, useMemo } from 'react';
-import { Plus, Calendar, Clock, Search, Edit, Trash2, CheckCircle, XCircle, User, ChevronLeft, ChevronRight, Filter, AlertCircle, Eye, CalendarDays, List, UserCircle, Stethoscope } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Textarea } from '../components/ui/textarea';
-import { Switch } from '../components/ui/switch';
+import { useState, useEffect, useMemo } from "react";
+import {
+  Plus,
+  Calendar,
+  Clock,
+  Search,
+  Edit,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  User,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  AlertCircle,
+  Eye,
+  CalendarDays,
+  List,
+  UserCircle,
+  Stethoscope,
+} from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import { Textarea } from "../components/ui/textarea";
+import { Switch } from "../components/ui/switch";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,18 +53,24 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../components/ui/alert-dialog';
-import { useDarkMode } from '../hooks/useDarkMode';
-import { motion } from 'motion/react';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { useCitas, useServicios } from '../hooks/useEntities'; // ✅ AGREGAR
-import { normalizarFecha, fechaAString, stringAFecha, mismaFecha } from '../utils/dateHelpers'; // ✅ AGREGAR
-import CalendarioDisponibilidad from '../components/citas/CalendarioDisponibilidad';
+} from "../components/ui/alert-dialog";
+import { useDarkMode } from "../hooks/useDarkMode";
+import { motion } from "motion/react";
+import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { useCitas, useServicios } from "../hooks/useEntities"; // ✅ AGREGAR
+import {
+  normalizarFecha,
+  fechaAString,
+  stringAFecha,
+  mismaFecha,
+} from "../utils/dateHelpers"; // ✅ AGREGAR
+import CalendarioDisponibilidad from "../components/citas/CalendarioDisponibilidad";
 ```
 
 ### 2. Actualizar Estados del Componente (Línea ~70-130)
 
 **BUSCAR:**
+
 ```typescript
 // Servicios
 const servicios = [
@@ -44,14 +80,20 @@ const servicios = [
 ```
 
 **REEMPLAZAR CON:**
+
 ```typescript
 // ✅ Usar hooks globales
-const { items: citas, add: addCita, update: updateCita, remove: removeCita } = useCitas();
+const {
+  items: citas,
+  add: addCita,
+  update: updateCita,
+  remove: removeCita,
+} = useCitas();
 const { items: servicios } = useServicios();
 
 // Servicios activos solamente
 const serviciosActivos = useMemo(
-  () => servicios.filter(s => s.estado === 'Activo'),
+  () => servicios.filter((s) => s.estado === "Activo"),
   [servicios]
 );
 ```
@@ -61,13 +103,15 @@ const serviciosActivos = useMemo(
 ```typescript
 // Estados para nueva cita
 const [modalOpen, setModalOpen] = useState(false);
-const [tipoDocumento, setTipoDocumento] = useState('');
-const [numeroDocumento, setNumeroDocumento] = useState('');
-const [nombreCliente, setNombreCliente] = useState('');
-const [servicioSeleccionado, setServicioSeleccionado] = useState('');
-const [fechaCitaSeleccionada, setFechaCitaSeleccionada] = useState<Date | null>(null);
-const [horaSeleccionada, setHoraSeleccionada] = useState('');
-const [notasCita, setNotasCita] = useState('');
+const [tipoDocumento, setTipoDocumento] = useState("");
+const [numeroDocumento, setNumeroDocumento] = useState("");
+const [nombreCliente, setNombreCliente] = useState("");
+const [servicioSeleccionado, setServicioSeleccionado] = useState("");
+const [fechaCitaSeleccionada, setFechaCitaSeleccionada] = useState<Date | null>(
+  null
+);
+const [horaSeleccionada, setHoraSeleccionada] = useState("");
+const [notasCita, setNotasCita] = useState("");
 const [detailModalOpen, setDetailModalOpen] = useState(false);
 const [citaDetalle, setCitaDetalle] = useState<any>(null);
 ```
@@ -80,18 +124,19 @@ const [citaDetalle, setCitaDetalle] = useState<any>(null);
 // Obtener horas disponibles para la fecha seleccionada
 const horasDisponiblesParaFecha = useMemo(() => {
   if (!fechaCitaSeleccionada) return [];
-  
+
   // Obtener TODAS las citas del día seleccionado (sin importar estado)
-  const citasDelDia = citas.filter(c => {
-    const citaFecha = typeof c.fecha === 'string' ? stringAFecha(c.fecha) : c.fecha;
+  const citasDelDia = citas.filter((c) => {
+    const citaFecha =
+      typeof c.fecha === "string" ? stringAFecha(c.fecha) : c.fecha;
     return mismaFecha(citaFecha, fechaCitaSeleccionada);
   });
-  
+
   // Horas ya reservadas
-  const horasReservadas = citasDelDia.map(c => c.hora);
-  
+  const horasReservadas = citasDelDia.map((c) => c.hora);
+
   // Filtrar horas disponibles
-  return HORARIOS_DIA.filter(hora => !horasReservadas.includes(hora));
+  return HORARIOS_DIA.filter((hora) => !horasReservadas.includes(hora));
 }, [fechaCitaSeleccionada, citas]);
 ```
 
@@ -102,20 +147,30 @@ const horasDisponiblesParaFecha = useMemo(() => {
 **REEMPLAZAR CON:**
 
 ```tsx
-{/* MODAL: Nueva Cita */}
+{
+  /* MODAL: Nueva Cita */
+}
 <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-  <DialogContent className={`${modalBg} rounded-2xl p-6 max-w-2xl max-h-[90vh] overflow-y-auto`}>
+  <DialogContent
+    className={`${modalBg} rounded-2xl p-6 max-w-2xl max-h-[90vh] overflow-y-auto`}
+  >
     <DialogHeader>
-      <DialogTitle className={`${textPrimary} text-2xl font-bold`}>Nueva Cita</DialogTitle>
+      <DialogTitle className={`${textPrimary} text-2xl font-bold`}>
+        Nueva Cita
+      </DialogTitle>
     </DialogHeader>
 
     <div className="space-y-4 mt-4">
       {/* 🔴 SECCIÓN 1: Tipo y Número de Documento (AL INICIO) */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className={`block ${textPrimary} mb-2 font-semibold`}>Tipo de Documento *</label>
+          <label className={`block ${textPrimary} mb-2 font-semibold`}>
+            Tipo de Documento *
+          </label>
           <Select value={tipoDocumento} onValueChange={setTipoDocumento}>
-            <SelectTrigger className={`h-12 rounded-xl ${inputBorder} ${inputBg}`}>
+            <SelectTrigger
+              className={`h-12 rounded-xl ${inputBorder} ${inputBg}`}
+            >
               <SelectValue placeholder="Selecciona tipo" />
             </SelectTrigger>
             <SelectContent>
@@ -127,7 +182,9 @@ const horasDisponiblesParaFecha = useMemo(() => {
           </Select>
         </div>
         <div>
-          <label className={`block ${textPrimary} mb-2 font-semibold`}>Número de Documento *</label>
+          <label className={`block ${textPrimary} mb-2 font-semibold`}>
+            Número de Documento *
+          </label>
           <Input
             type="text"
             value={numeroDocumento}
@@ -139,7 +196,9 @@ const horasDisponiblesParaFecha = useMemo(() => {
 
       {/* SECCIÓN 2: Nombre del Cliente */}
       <div>
-        <label className={`block ${textPrimary} mb-2 font-semibold`}>Nombre del Cliente *</label>
+        <label className={`block ${textPrimary} mb-2 font-semibold`}>
+          Nombre del Cliente *
+        </label>
         <Input
           type="text"
           value={nombreCliente}
@@ -150,15 +209,23 @@ const horasDisponiblesParaFecha = useMemo(() => {
 
       {/* SECCIÓN 3: Servicio (DINÁMICO desde tabla) */}
       <div>
-        <label className={`block ${textPrimary} mb-2 font-semibold`}>Servicio *</label>
-        <Select value={servicioSeleccionado} onValueChange={setServicioSeleccionado}>
-          <SelectTrigger className={`h-12 rounded-xl ${inputBorder} ${inputBg}`}>
+        <label className={`block ${textPrimary} mb-2 font-semibold`}>
+          Servicio *
+        </label>
+        <Select
+          value={servicioSeleccionado}
+          onValueChange={setServicioSeleccionado}
+        >
+          <SelectTrigger
+            className={`h-12 rounded-xl ${inputBorder} ${inputBg}`}
+          >
             <SelectValue placeholder="Selecciona un servicio" />
           </SelectTrigger>
           <SelectContent>
-            {serviciosActivos.map(servicio => (
+            {serviciosActivos.map((servicio) => (
               <SelectItem key={servicio.id} value={servicio.id}>
-                {servicio.nombre} - ${servicio.precio.toLocaleString()} ({servicio.duracion} min)
+                {servicio.nombre} - ${servicio.precio.toLocaleString()} (
+                {servicio.duracion} min)
               </SelectItem>
             ))}
           </SelectContent>
@@ -167,14 +234,18 @@ const horasDisponiblesParaFecha = useMemo(() => {
 
       {/* SECCIÓN 4: Fecha */}
       <div>
-        <label className={`block ${textPrimary} mb-2 font-semibold`}>Fecha de la Cita *</label>
+        <label className={`block ${textPrimary} mb-2 font-semibold`}>
+          Fecha de la Cita *
+        </label>
         <Input
           type="date"
-          value={fechaCitaSeleccionada ? fechaAString(fechaCitaSeleccionada) : ''}
+          value={
+            fechaCitaSeleccionada ? fechaAString(fechaCitaSeleccionada) : ""
+          }
           onChange={(e) => {
             if (e.target.value) {
               setFechaCitaSeleccionada(stringAFecha(e.target.value));
-              setHoraSeleccionada(''); // Resetear hora al cambiar fecha
+              setHoraSeleccionada(""); // Resetear hora al cambiar fecha
             }
           }}
           min={fechaAString(new Date())}
@@ -186,21 +257,24 @@ const horasDisponiblesParaFecha = useMemo(() => {
       {fechaCitaSeleccionada && (
         <div>
           <label className={`block ${textPrimary} mb-2 font-semibold`}>
-            Hora de la Cita * 
+            Hora de la Cita *
             {horasDisponiblesParaFecha.length === 0 && (
-              <span className="text-red-500 text-sm ml-2">(No hay horas disponibles)</span>
+              <span className="text-red-500 text-sm ml-2">
+                (No hay horas disponibles)
+              </span>
             )}
           </label>
           <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto p-2">
-            {horasDisponiblesParaFecha.map(hora => (
+            {horasDisponiblesParaFecha.map((hora) => (
               <button
                 key={hora}
                 onClick={() => setHoraSeleccionada(hora)}
                 className={`
                   px-4 py-3 rounded-xl font-semibold text-sm transition-all
-                  ${horaSeleccionada === hora 
-                    ? 'bg-[#63E6BE] text-white shadow-lg scale-105' 
-                    : 'bg-white dark:bg-gray-800 hover:bg-[#63E6BE]/10 border-2 border-gray-200 dark:border-gray-700 hover:border-[#63E6BE]'
+                  ${
+                    horaSeleccionada === hora
+                      ? "bg-[#63E6BE] text-white shadow-lg scale-105"
+                      : "bg-white dark:bg-gray-800 hover:bg-[#63E6BE]/10 border-2 border-gray-200 dark:border-gray-700 hover:border-[#63E6BE]"
                   }
                 `}
               >
@@ -213,7 +287,9 @@ const horasDisponiblesParaFecha = useMemo(() => {
 
       {/* SECCIÓN 6: Notas */}
       <div>
-        <label className={`block ${textPrimary} mb-2 font-semibold`}>Notas (Opcional)</label>
+        <label className={`block ${textPrimary} mb-2 font-semibold`}>
+          Notas (Opcional)
+        </label>
         <Textarea
           value={notasCita}
           onChange={(e) => setNotasCita(e.target.value)}
@@ -240,7 +316,7 @@ const horasDisponiblesParaFecha = useMemo(() => {
       </div>
     </div>
   </DialogContent>
-</Dialog>
+</Dialog>;
 ```
 
 ### 6. Función para Crear Cita
@@ -249,32 +325,32 @@ const horasDisponiblesParaFecha = useMemo(() => {
 const handleCrearCita = () => {
   // Validaciones
   if (!tipoDocumento || !numeroDocumento) {
-    toast.error('El tipo y número de documento son obligatorios');
+    toast.error("El tipo y número de documento son obligatorios");
     return;
   }
 
   if (!nombreCliente.trim()) {
-    toast.error('El nombre del cliente es obligatorio');
+    toast.error("El nombre del cliente es obligatorio");
     return;
   }
 
   if (!servicioSeleccionado) {
-    toast.error('Debes seleccionar un servicio');
+    toast.error("Debes seleccionar un servicio");
     return;
   }
 
   if (!fechaCitaSeleccionada) {
-    toast.error('Debes seleccionar una fecha');
+    toast.error("Debes seleccionar una fecha");
     return;
   }
 
   if (!horaSeleccionada) {
-    toast.error('Debes seleccionar una hora');
+    toast.error("Debes seleccionar una hora");
     return;
   }
 
   // Obtener info del servicio
-  const servicio = servicios.find(s => s.id === servicioSeleccionado);
+  const servicio = servicios.find((s) => s.id === servicioSeleccionado);
 
   // Crear objeto de cita
   const nuevaCita = {
@@ -284,26 +360,26 @@ const handleCrearCita = () => {
     clienteId: numeroDocumento, // Usar número de documento como ID
     clienteNombre: nombreCliente,
     servicioId: servicioSeleccionado,
-    servicioNombre: servicio?.nombre || '',
-    estado: 'Pendiente' as const,
+    servicioNombre: servicio?.nombre || "",
+    estado: "Pendiente" as const,
     notas: notasCita,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   };
 
   // Guardar con hook
   addCita(nuevaCita);
 
   // Limpiar formulario
-  setTipoDocumento('');
-  setNumeroDocumento('');
-  setNombreCliente('');
-  setServicioSeleccionado('');
+  setTipoDocumento("");
+  setNumeroDocumento("");
+  setNombreCliente("");
+  setServicioSeleccionado("");
   setFechaCitaSeleccionada(null);
-  setHoraSeleccionada('');
-  setNotasCita('');
+  setHoraSeleccionada("");
+  setNotasCita("");
 
-  toast.success('¡Cita agendada exitosamente!', {
-    style: { background: '#A7F3D0', color: '#065F46' }
+  toast.success("¡Cita agendada exitosamente!", {
+    style: { background: "#A7F3D0", color: "#065F46" },
   });
 
   setModalOpen(false);
@@ -332,53 +408,78 @@ const handleCrearCita = () => {
 ### 8. Modal de Detalle
 
 ```tsx
-{/* MODAL: Detalle de Cita */}
+{
+  /* MODAL: Detalle de Cita */
+}
 <Dialog open={detailModalOpen} onOpenChange={setDetailModalOpen}>
   <DialogContent className={`${modalBg} rounded-2xl p-6 max-w-md`}>
     <DialogHeader>
-      <DialogTitle className={`${textPrimary} text-2xl font-bold`}>Detalle de Cita</DialogTitle>
+      <DialogTitle className={`${textPrimary} text-2xl font-bold`}>
+        Detalle de Cita
+      </DialogTitle>
     </DialogHeader>
 
     {citaDetalle && (
       <div className="space-y-4 mt-4">
         <div>
-          <label className={`block ${textSecondary} mb-1 text-sm`}>Cliente</label>
-          <p className={`${textPrimary} font-semibold`}>{citaDetalle.clienteNombre}</p>
+          <label className={`block ${textSecondary} mb-1 text-sm`}>
+            Cliente
+          </label>
+          <p className={`${textPrimary} font-semibold`}>
+            {citaDetalle.clienteNombre}
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={`block ${textSecondary} mb-1 text-sm`}>Fecha</label>
+            <label className={`block ${textSecondary} mb-1 text-sm`}>
+              Fecha
+            </label>
             <p className={`${textPrimary} font-semibold`}>
-              {new Date(citaDetalle.fecha).toLocaleDateString('es-ES')}
+              {new Date(citaDetalle.fecha).toLocaleDateString("es-ES")}
             </p>
           </div>
           <div>
-            <label className={`block ${textSecondary} mb-1 text-sm`}>Hora</label>
+            <label className={`block ${textSecondary} mb-1 text-sm`}>
+              Hora
+            </label>
             <p className={`${textPrimary} font-semibold`}>{citaDetalle.hora}</p>
           </div>
         </div>
 
         <div>
-          <label className={`block ${textSecondary} mb-1 text-sm`}>Servicio</label>
-          <p className={`${textPrimary} font-semibold`}>{citaDetalle.servicioNombre}</p>
+          <label className={`block ${textSecondary} mb-1 text-sm`}>
+            Servicio
+          </label>
+          <p className={`${textPrimary} font-semibold`}>
+            {citaDetalle.servicioNombre}
+          </p>
         </div>
 
         <div>
-          <label className={`block ${textSecondary} mb-1 text-sm`}>Estado</label>
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-            citaDetalle.estado === 'Confirmada' ? 'bg-green-500/10 text-green-500' :
-            citaDetalle.estado === 'Pendiente' ? 'bg-yellow-500/10 text-yellow-500' :
-            citaDetalle.estado === 'Completada' ? 'bg-blue-500/10 text-blue-500' :
-            'bg-red-500/10 text-red-500'
-          }`}>
+          <label className={`block ${textSecondary} mb-1 text-sm`}>
+            Estado
+          </label>
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              citaDetalle.estado === "Confirmada"
+                ? "bg-green-500/10 text-green-500"
+                : citaDetalle.estado === "Pendiente"
+                ? "bg-yellow-500/10 text-yellow-500"
+                : citaDetalle.estado === "Completada"
+                ? "bg-blue-500/10 text-blue-500"
+                : "bg-red-500/10 text-red-500"
+            }`}
+          >
             {citaDetalle.estado}
           </span>
         </div>
 
         {citaDetalle.notas && (
           <div>
-            <label className={`block ${textSecondary} mb-1 text-sm`}>Notas</label>
+            <label className={`block ${textSecondary} mb-1 text-sm`}>
+              Notas
+            </label>
             <p className={`${textPrimary}`}>{citaDetalle.notas}</p>
           </div>
         )}
@@ -392,7 +493,7 @@ const handleCrearCita = () => {
       </div>
     )}
   </DialogContent>
-</Dialog>
+</Dialog>;
 ```
 
 ### 9. Calendario - Mostrar Citas Creadas
@@ -402,27 +503,33 @@ const handleCrearCita = () => {
 **AGREGAR después de mostrar el número del día:**
 
 ```tsx
-{/* Mostrar citas del día */}
-{citas
-  .filter(c => {
-    const citaFecha = typeof c.fecha === 'string' ? stringAFecha(c.fecha) : c.fecha;
-    return citaFecha.getDate() === dia &&
-           citaFecha.getMonth() === fechaActual.getMonth() &&
-           citaFecha.getFullYear() === fechaActual.getFullYear();
-  })
-  .slice(0, 2) // Mostrar máximo 2 citas
-  .map(cita => (
-    <div 
-      key={cita.id}
-      className="text-xs bg-[#63E6BE]/20 px-1 rounded mt-1 truncate cursor-pointer hover:bg-[#63E6BE]/30"
-      onClick={() => {
-        setCitaDetalle(cita);
-        setDetailModalOpen(true);
-      }}
-    >
-      {cita.hora} - {cita.clienteNombre}
-    </div>
-  ))
+{
+  /* Mostrar citas del día */
+}
+{
+  citas
+    .filter((c) => {
+      const citaFecha =
+        typeof c.fecha === "string" ? stringAFecha(c.fecha) : c.fecha;
+      return (
+        citaFecha.getDate() === dia &&
+        citaFecha.getMonth() === fechaActual.getMonth() &&
+        citaFecha.getFullYear() === fechaActual.getFullYear()
+      );
+    })
+    .slice(0, 2) // Mostrar máximo 2 citas
+    .map((cita) => (
+      <div
+        key={cita.id}
+        className="text-xs bg-[#63E6BE]/20 px-1 rounded mt-1 truncate cursor-pointer hover:bg-[#63E6BE]/30"
+        onClick={() => {
+          setCitaDetalle(cita);
+          setDetailModalOpen(true);
+        }}
+      >
+        {cita.hora} - {cita.clienteNombre}
+      </div>
+    ));
 }
 ```
 

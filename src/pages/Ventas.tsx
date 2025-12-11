@@ -27,7 +27,7 @@ import {
   User,
   Users,
 } from "lucide-react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import {
@@ -614,6 +614,9 @@ export default function Ventas({ user }: VentasProps) {
 
     setBusquedaProducto("");
     setProductoSeleccionado(null);
+    toast.success("Producto agregado al carrito", {
+      style: { background: "#14B8A6", color: "white" },
+    });
   };
 
   // Actualizar cantidad de producto

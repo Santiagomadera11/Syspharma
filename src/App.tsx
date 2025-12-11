@@ -28,7 +28,7 @@ import MisPedidos from "./pages/MisPedidos";
 import MisCitas from "./pages/MisCitas";
 import MiPerfil from "./pages/MiPerfil";
 import Layout from "./components/layout/Layout";
-import { Toaster } from "sonner@2.0.3";
+import { Toaster } from "sonner";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { initializeLocalStorage } from "./utils/localStorage";

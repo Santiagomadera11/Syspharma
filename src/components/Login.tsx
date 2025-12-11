@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Mail, Lock, Pill } from 'lucide-react';
-import { InputWithValidation } from './ui/input-with-validation';
-import { ButtonPastel } from './ui/button-pastel';
-import { validateEmail, validateRequired } from '../utils/validation';
-import { toast } from 'sonner@2.0.3';
-import type { User } from '../App';
+import { useState } from "react";
+import { Mail, Lock, Pill } from "lucide-react";
+import { InputWithValidation } from "./ui/input-with-validation";
+import { ButtonPastel } from "./ui/button-pastel";
+import { validateEmail, validateRequired } from "../utils/validation";
+import { toast } from "sonner";
+import type { User } from "../App";
 
 interface LoginProps {
   onLogin: (user: User) => void;
@@ -12,20 +12,22 @@ interface LoginProps {
 }
 
 export function Login({ onLogin, onSwitchToRegister }: LoginProps) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [touched, setTouched] = useState({ email: false, password: false });
   const [loading, setLoading] = useState(false);
 
-  const emailError = touched.email && !validateRequired(email)
-    ? 'Este campo es obligatorio'
-    : touched.email && !validateEmail(email)
-    ? 'Ingresa un email válido'
-    : '';
+  const emailError =
+    touched.email && !validateRequired(email)
+      ? "Este campo es obligatorio"
+      : touched.email && !validateEmail(email)
+      ? "Ingresa un email válido"
+      : "";
 
-  const passwordError = touched.password && !validateRequired(password)
-    ? 'Este campo es obligatorio'
-    : '';
+  const passwordError =
+    touched.password && !validateRequired(password)
+      ? "Este campo es obligatorio"
+      : "";
 
   const isValid = validateEmail(email) && validateRequired(password);
 
@@ -34,28 +36,32 @@ export function Login({ onLogin, onSwitchToRegister }: LoginProps) {
     setTouched({ email: true, password: true });
 
     if (!isValid) {
-      toast.error('Por favor completa todos los campos correctamente', {
-        style: { background: '#FBCFE8', color: '#9F1239' }
+      toast.error("Por favor completa todos los campos correctamente", {
+        style: { background: "#FBCFE8", color: "#9F1239" },
       });
       return;
     }
 
     setLoading(true);
-    
+
     // Simulate API call
     setTimeout(() => {
-      const mockUsers = JSON.parse(localStorage.getItem('syspharma_users') || '[]');
-      const user = mockUsers.find((u: any) => u.email === email && u.password === password);
+      const mockUsers = JSON.parse(
+        localStorage.getItem("syspharma_users") || "[]"
+      );
+      const user = mockUsers.find(
+        (u: any) => u.email === email && u.password === password
+      );
 
       if (user) {
         const { password: _, ...userWithoutPassword } = user;
-        toast.success('¡Bienvenido a SysPharma!', {
-          style: { background: '#A7F3D0', color: '#065F46' }
+        toast.success("¡Bienvenido a SysPharma!", {
+          style: { background: "#A7F3D0", color: "#065F46" },
         });
         onLogin(userWithoutPassword);
       } else {
-        toast.error('Email o contraseña incorrectos', {
-          style: { background: '#FBCFE8', color: '#9F1239' }
+        toast.error("Email o contraseña incorrectos", {
+          style: { background: "#FBCFE8", color: "#9F1239" },
         });
       }
       setLoading(false);
@@ -71,18 +77,29 @@ export function Login({ onLogin, onSwitchToRegister }: LoginProps) {
           <div className="flex items-center gap-3 mb-8">
             <div
               className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm"
-              style={{ background: 'linear-gradient(135deg, #93C5FD 0%, #C4B5FD 100%)' }}
+              style={{
+                background: "linear-gradient(135deg, #93C5FD 0%, #C4B5FD 100%)",
+              }}
             >
-              <Pill style={{ width: '28px', height: '28px', color: 'white' }} />
+              <Pill style={{ width: "28px", height: "28px", color: "white" }} />
             </div>
             <div>
-              <h1 className="m-0" style={{ color: '#93C5FD', fontSize: '1.75rem' }}>SysPharma</h1>
-              <p className="m-0 text-sm" style={{ color: '#9CA3AF' }}>Sistema de Gestión</p>
+              <h1
+                className="m-0"
+                style={{ color: "#93C5FD", fontSize: "1.75rem" }}
+              >
+                SysPharma
+              </h1>
+              <p className="m-0 text-sm" style={{ color: "#9CA3AF" }}>
+                Sistema de Gestión
+              </p>
             </div>
           </div>
 
-          <h2 className="mb-2" style={{ color: '#93C5FD' }}>Iniciar Sesión</h2>
-          <p className="mb-8" style={{ color: '#9CA3AF' }}>
+          <h2 className="mb-2" style={{ color: "#93C5FD" }}>
+            Iniciar Sesión
+          </h2>
+          <p className="mb-8" style={{ color: "#9CA3AF" }}>
             Ingresa tus credenciales para acceder
           </p>
 
@@ -107,7 +124,9 @@ export function Login({ onLogin, onSwitchToRegister }: LoginProps) {
               onChange={(e) => setPassword(e.target.value)}
               onBlur={() => setTouched({ ...touched, password: true })}
               error={passwordError}
-              success={touched.password && !passwordError && password.length > 0}
+              success={
+                touched.password && !passwordError && password.length > 0
+              }
               showValidation={touched.password && password.length > 0}
             />
 
@@ -122,13 +141,13 @@ export function Login({ onLogin, onSwitchToRegister }: LoginProps) {
             </ButtonPastel>
 
             <div className="text-center">
-              <p style={{ color: '#9CA3AF' }}>
-                ¿No tienes cuenta?{' '}
+              <p style={{ color: "#9CA3AF" }}>
+                ¿No tienes cuenta?{" "}
                 <button
                   type="button"
                   onClick={onSwitchToRegister}
                   className="transition-colors"
-                  style={{ color: '#93C5FD', fontWeight: 500 }}
+                  style={{ color: "#93C5FD", fontWeight: 500 }}
                 >
                   Regístrate aquí
                 </button>
@@ -142,7 +161,8 @@ export function Login({ onLogin, onSwitchToRegister }: LoginProps) {
       <div
         className="hidden lg:flex w-1/2 relative overflow-hidden items-center justify-center"
         style={{
-          background: 'linear-gradient(135deg, #C4B5FD 0%, #A7F3D0 50%, #93C5FD 100%)'
+          background:
+            "linear-gradient(135deg, #C4B5FD 0%, #A7F3D0 50%, #93C5FD 100%)",
         }}
       >
         <div className="absolute inset-0">
@@ -153,12 +173,10 @@ export function Login({ onLogin, onSwitchToRegister }: LoginProps) {
           />
         </div>
         <div className="relative z-10 text-center px-12 max-w-2xl">
-          <h2 className="mb-4 text-white" style={{ fontSize: '2.5rem' }}>
+          <h2 className="mb-4 text-white" style={{ fontSize: "2.5rem" }}>
             SysPharma
           </h2>
-          <p className="text-white text-xl">
-            Tu salud en buenas manos
-          </p>
+          <p className="text-white text-xl">Tu salud en buenas manos</p>
         </div>
       </div>
     </div>

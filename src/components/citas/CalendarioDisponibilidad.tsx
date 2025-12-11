@@ -3,7 +3,7 @@ import { fechaAString } from "../../utils/dateHelpers";
 import { ChevronLeft, ChevronRight, XCircle } from "lucide-react";
 import { Button } from "../ui/button";
 import { motion } from "motion/react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 
 interface Empleado {
   id: string;
