@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { fechaAString } from "../../utils/dateHelpers";
 import { ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { Button } from "../ui/button";
 import { motion } from "motion/react";
@@ -250,7 +249,9 @@ export default function CalendarioSeleccionFecha({
             <p className="text-red-600 dark:text-red-400 text-xs">
               <strong>{empleadoSeleccionado.nombre}</strong> no está disponible
               en {empleadoSeleccionado.diasNoDisponibles.length} día
-              {empleadoSeleccionado.diasNoDisponibles.length > 1 ? "s" : ""}{" "}
+              {empleadoSeleccionado.diasNoDisponibles.length > 1
+                ? "s"
+                : ""}{" "}
               (marcado
               {empleadoSeleccionado.diasNoDisponibles.length > 1 ? "s" : ""} en
               rojo).

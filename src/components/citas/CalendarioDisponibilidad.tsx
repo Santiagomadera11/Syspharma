@@ -52,6 +52,10 @@ export default function CalendarioDisponibilidad({
   border,
 }: CalendarioDisponibilidadProps) {
   const [fechaCalendario, setFechaCalendario] = useState(new Date());
+  // Modo de selección: true = seleccionar DÍAS NO DISPONIBLES (por defecto)
+  // Si se desactiva, el calendario mostrará/seleccionará las fechas DISPONIBLES.
+  const [seleccionarNoDisponibles, setSeleccionarNoDisponibles] =
+    useState<boolean>(true);
 
   const getDiasDelMes = (fecha: Date) => {
     const año = fecha.getFullYear();
@@ -139,10 +143,28 @@ export default function CalendarioDisponibilidad({
         </div>
       </div>
 
-      <p className={`${textSecondary} mb-4`} style={{ fontSize: "13px" }}>
-        Haz clic en un día para marcarlo como no disponible. Los días marcados
-        aparecerán en rojo con una X.
-      </p>
+      <div className="flex items-center justify-between mb-4">
+        <p className={`${textSecondary}`} style={{ fontSize: "13px" }}>
+          Haz clic en un día para alternar su estado.
+        </p>
+        <div className="flex items-center gap-2">
+          <label className={`${textSecondary} text-sm`}>Seleccionar:</label>
+          <button
+            onClick={() =>
+              setSeleccionarNoDisponibles(!seleccionarNoDisponibles)
+            }
+            className={`px-3 py-1 rounded-lg text-sm font-semibold transition-colors duration-200 ${
+              seleccionarNoDisponibles
+                ? "bg-red-500 text-white"
+                : "bg-green-500 text-white"
+            }`}
+          >
+            {seleccionarNoDisponibles
+              ? "Días No Disponibles"
+              : "Días Disponibles"}
+          </button>
+        </div>
+      </div>
 
       {/* Calendario mensual */}
       <div>
@@ -170,14 +192,22 @@ export default function CalendarioDisponibilidad({
             const esNoDisponible = esDiaNoDisponible(dia);
             const esHoy = dia.toDateString() === new Date().toDateString();
 
+            // Dependiendo del modo, consideramos seleccionado el día NO disponible
+            // (modo por defecto) o el día disponible (modo alterno).
+            const esSeleccionado = seleccionarNoDisponibles
+              ? esNoDisponible
+              : !esNoDisponible;
+
             return (
               <motion.div
                 key={dia.toISOString()}
                 whileHover={{ scale: 1.05 }}
                 onClick={() => onToggleDia(dia)}
                 className={`aspect-square rounded-xl p-2 cursor-pointer transition-all duration-200 flex flex-col items-center justify-center ${
-                  esNoDisponible
-                    ? "bg-red-500 text-white shadow-md"
+                  esSeleccionado
+                    ? seleccionarNoDisponibles
+                      ? "bg-red-500 text-white shadow-md"
+                      : "bg-green-500 text-white shadow-md"
                     : esHoy
                     ? `${
                         isDark ? "bg-[#1f6feb1a]" : "bg-blue-50"
@@ -190,12 +220,17 @@ export default function CalendarioDisponibilidad({
                 <span
                   style={{
                     fontSize: "13px",
-                    fontWeight: esHoy || esNoDisponible ? 700 : 500,
+                    fontWeight: esHoy || esSeleccionado ? 700 : 500,
                   }}
                 >
                   {dia.getDate()}
                 </span>
-                {esNoDisponible && <XCircle className="w-4 h-4 mt-1" />}
+                {esSeleccionado &&
+                  (seleccionarNoDisponibles ? (
+                    <XCircle className="w-4 h-4 mt-1" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 mt-1" />
+                  ))}
               </motion.div>
             );
           })}

@@ -44,6 +44,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "../components/ui/dialog";
+import ErrorBoundary from "../components/ErrorBoundary";
 import { Textarea } from "../components/ui/textarea";
 import {
   AlertDialog,
@@ -851,6 +852,13 @@ export default function Ventas({ user }: VentasProps) {
 
   // Ver detalle de venta
   const verDetalle = (venta: Venta) => {
+    // Diagnostic: confirm handler is invoked
+    // eslint-disable-next-line no-console
+    console.log("verDetalle invoked:", venta?.id);
+    try {
+      toast.info("Abriendo detalle de venta...");
+    } catch (_e) {}
+
     setSelectedVenta(venta);
     setModalDetalleOpen(true);
   };
@@ -879,6 +887,13 @@ export default function Ventas({ user }: VentasProps) {
 
   // Abrir modal de devolución
   const abrirModalDevolucion = (venta: Venta) => {
+    // Diagnostic
+    // eslint-disable-next-line no-console
+    console.log("abrirModalDevolucion invoked:", venta?.id);
+    try {
+      toast.info("Abriendo devolución...");
+    } catch (_e) {}
+
     setVentaParaDevolucion(venta);
     setModalDevolucionOpen(true);
   };
@@ -918,6 +933,13 @@ export default function Ventas({ user }: VentasProps) {
 
   // Abrir modal eliminar venta
   const abrirModalEliminarVenta = (venta: Venta) => {
+    // Diagnostic
+    // eslint-disable-next-line no-console
+    console.log("abrirModalEliminarVenta invoked:", venta?.id);
+    try {
+      toast.info("Abriendo confirmación de eliminación...");
+    } catch (_e) {}
+
     setVentaParaEliminar(venta);
     setModalEliminarVentaOpen(true);
   };
@@ -977,6 +999,12 @@ export default function Ventas({ user }: VentasProps) {
 
   return (
     <div className={`min-h-screen ${bgPrimary} p-8`}>
+      {/* Debug banner: visible when detail modal state is true */}
+      {modalDetalleOpen && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] bg-yellow-400 text-black px-4 py-2 rounded-full shadow-lg">
+          modalDetalleOpen = true
+        </div>
+      )}
       <div className="max-w-[1600px] mx-auto space-y-8">
         {/* Header con título y botón de cierre */}
         <div className="flex items-center justify-between">
@@ -1729,8 +1757,8 @@ export default function Ventas({ user }: VentasProps) {
                 />
               </div>
 
-              {/* Dropdown de productos */}
-              {busquedaProducto && productosFiltrados.length > 0 && (
+              {/* Dropdown de productos (mostrar por defecto todos los productos filtrados) */}
+              {productosFiltrados.length > 0 ? (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1774,6 +1802,10 @@ export default function Ventas({ user }: VentasProps) {
                     </div>
                   ))}
                 </motion.div>
+              ) : (
+                <div className="mt-3 p-4 text-center text-sm text-gray-500">
+                  No se encontraron productos para los criterios seleccionados.
+                </div>
               )}
             </div>
 
@@ -2479,184 +2511,190 @@ export default function Ventas({ user }: VentasProps) {
           className={`${bgCard} border-2 ${border} rounded-3xl`}
           style={{ maxWidth: "800px" }}
         >
-          {selectedVenta && (
-            <>
-              <DialogHeader>
-                <DialogTitle
-                  className={`${textPrimary}`}
-                  style={{ fontSize: "24px", fontWeight: 700 }}
-                >
-                  Detalle de Venta
-                </DialogTitle>
-                <DialogDescription
-                  className={textSecondary}
-                  style={{ fontSize: "14px" }}
-                >
-                  {selectedVenta.codigo}
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-6 py-4">
-                {/* Info general */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className={textSecondary} style={{ fontSize: "13px" }}>
-                      Cliente
-                    </p>
-                    <p
-                      className={textPrimary}
-                      style={{ fontSize: "16px", fontWeight: 600 }}
-                    >
-                      {selectedVenta.cliente}
-                    </p>
-                    <p className={textSecondary} style={{ fontSize: "12px" }}>
-                      CC: {selectedVenta.cedulaCliente}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className={textSecondary} style={{ fontSize: "13px" }}>
-                      Fecha y Hora
-                    </p>
-                    <p
-                      className={textPrimary}
-                      style={{ fontSize: "16px", fontWeight: 600 }}
-                    >
-                      {new Date(selectedVenta.fecha).toLocaleDateString(
-                        "es-ES"
-                      )}
-                    </p>
-                    <p className={textSecondary} style={{ fontSize: "12px" }}>
-                      {new Date(selectedVenta.fecha).toLocaleTimeString(
-                        "es-ES"
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Productos */}
-                <div>
-                  <h4
-                    className={`${textPrimary} mb-3`}
-                    style={{ fontSize: "16px", fontWeight: 700 }}
+          <ErrorBoundary>
+            {selectedVenta && (
+              <>
+                <DialogHeader>
+                  <DialogTitle
+                    className={`${textPrimary}`}
+                    style={{ fontSize: "24px", fontWeight: 700 }}
                   >
-                    Productos
-                  </h4>
-                  <div className="space-y-2">
-                    {selectedVenta.productos.map((producto) => (
-                      <div
-                        key={producto.id}
-                        className={`flex justify-between items-center p-3 rounded-xl ${
-                          isDark ? "bg-[#1a1d2e]" : "bg-gray-50"
-                        }`}
+                    Detalle de Venta
+                  </DialogTitle>
+                  <DialogDescription
+                    className={textSecondary}
+                    style={{ fontSize: "14px" }}
+                  >
+                    {selectedVenta.codigo}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-6 py-4">
+                  {/* Info general */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className={textSecondary} style={{ fontSize: "13px" }}>
+                        Cliente
+                      </p>
+                      <p
+                        className={textPrimary}
+                        style={{ fontSize: "16px", fontWeight: 600 }}
                       >
-                        <div className="flex-1">
+                        {selectedVenta.cliente}
+                      </p>
+                      <p className={textSecondary} style={{ fontSize: "12px" }}>
+                        CC: {selectedVenta.cedulaCliente}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className={textSecondary} style={{ fontSize: "13px" }}>
+                        Fecha y Hora
+                      </p>
+                      <p
+                        className={textPrimary}
+                        style={{ fontSize: "16px", fontWeight: 600 }}
+                      >
+                        {new Date(selectedVenta.fecha).toLocaleDateString(
+                          "es-ES"
+                        )}
+                      </p>
+                      <p className={textSecondary} style={{ fontSize: "12px" }}>
+                        {new Date(selectedVenta.fecha).toLocaleTimeString(
+                          "es-ES"
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Productos */}
+                  <div>
+                    <h4
+                      className={`${textPrimary} mb-3`}
+                      style={{ fontSize: "16px", fontWeight: 700 }}
+                    >
+                      Productos
+                    </h4>
+                    <div className="space-y-2">
+                      {selectedVenta.productos.map((producto) => (
+                        <div
+                          key={producto.id}
+                          className={`flex justify-between items-center p-3 rounded-xl ${
+                            isDark ? "bg-[#1a1d2e]" : "bg-gray-50"
+                          }`}
+                        >
+                          <div className="flex-1">
+                            <p
+                              className={textPrimary}
+                              style={{ fontSize: "14px", fontWeight: 600 }}
+                            >
+                              {producto.nombre}
+                            </p>
+                            <p
+                              className={textSecondary}
+                              style={{ fontSize: "12px" }}
+                            >
+                              {producto.cantidad} x $
+                              {producto.precioUnitario.toLocaleString("es-CO")}
+                              {producto.descuentoPorcentaje > 0 &&
+                                ` (-${producto.descuentoPorcentaje}%)`}
+                            </p>
+                          </div>
                           <p
-                            className={textPrimary}
-                            style={{ fontSize: "14px", fontWeight: 600 }}
+                            className="text-[#14B8A6]"
+                            style={{ fontSize: "15px", fontWeight: 700 }}
                           >
-                            {producto.nombre}
-                          </p>
-                          <p
-                            className={textSecondary}
-                            style={{ fontSize: "12px" }}
-                          >
-                            {producto.cantidad} x $
-                            {producto.precioUnitario.toLocaleString("es-CO")}
-                            {producto.descuentoPorcentaje > 0 &&
-                              ` (-${producto.descuentoPorcentaje}%)`}
+                            ${producto.subtotal.toLocaleString("es-CO")}
                           </p>
                         </div>
-                        <p
-                          className="text-[#14B8A6]"
-                          style={{ fontSize: "15px", fontWeight: 700 }}
-                        >
-                          ${producto.subtotal.toLocaleString("es-CO")}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Totales */}
-                <div
-                  className={`${
-                    isDark ? "bg-[#1a1d2e]" : "bg-gray-50"
-                  } rounded-2xl p-6 space-y-3`}
-                >
-                  <div className="flex justify-between">
-                    <span className={textSecondary}>Subtotal:</span>
-                    <span className={textPrimary} style={{ fontWeight: 600 }}>
-                      ${selectedVenta.subtotal.toLocaleString("es-CO")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={textSecondary}>Descuento:</span>
-                    <span className="text-red-500" style={{ fontWeight: 600 }}>
-                      -${selectedVenta.descuentoTotal.toLocaleString("es-CO")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={textSecondary}>IVA (16%):</span>
-                    <span className={textPrimary} style={{ fontWeight: 600 }}>
-                      ${selectedVenta.iva.toLocaleString("es-CO")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between pt-3 border-t-2 border-[#14B8A6]">
-                    <span
-                      className={textPrimary}
-                      style={{ fontSize: "18px", fontWeight: 700 }}
-                    >
-                      TOTAL:
-                    </span>
-                    <span
-                      className="text-[#14B8A6]"
-                      style={{ fontSize: "24px", fontWeight: 700 }}
-                    >
-                      ${selectedVenta.total.toLocaleString("es-CO")}
-                    </span>
+                      ))}
+                    </div>
                   </div>
 
-                  {selectedVenta.metodoPago === "Efectivo" && (
-                    <>
-                      <div className="flex justify-between pt-3 border-t border-gray-300 dark:border-gray-600">
-                        <span className={textSecondary}>Pagó con:</span>
-                        <span
-                          className={textPrimary}
-                          style={{ fontWeight: 600 }}
-                        >
-                          ${selectedVenta.montoPagado?.toLocaleString("es-CO")}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className={textSecondary}>Cambio:</span>
-                        <span
-                          className="text-green-500"
-                          style={{ fontWeight: 600 }}
-                        >
-                          ${selectedVenta.cambio?.toLocaleString("es-CO")}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <Button
-                    onClick={() => setModalDetalleOpen(false)}
+                  {/* Totales */}
+                  <div
                     className={`${
-                      isDark
-                        ? "bg-gray-700 hover:bg-gray-600"
-                        : "bg-gray-200 hover:bg-gray-300"
-                    } ${textPrimary} rounded-xl h-12 px-8`}
-                    style={{ fontSize: "14px", fontWeight: 600 }}
+                      isDark ? "bg-[#1a1d2e]" : "bg-gray-50"
+                    } rounded-2xl p-6 space-y-3`}
                   >
-                    Cerrar
-                  </Button>
+                    <div className="flex justify-between">
+                      <span className={textSecondary}>Subtotal:</span>
+                      <span className={textPrimary} style={{ fontWeight: 600 }}>
+                        ${selectedVenta.subtotal.toLocaleString("es-CO")}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className={textSecondary}>Descuento:</span>
+                      <span
+                        className="text-red-500"
+                        style={{ fontWeight: 600 }}
+                      >
+                        -${selectedVenta.descuentoTotal.toLocaleString("es-CO")}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className={textSecondary}>IVA (16%):</span>
+                      <span className={textPrimary} style={{ fontWeight: 600 }}>
+                        ${selectedVenta.iva.toLocaleString("es-CO")}
+                      </span>
+                    </div>
+                    <div className="flex justify-between pt-3 border-t-2 border-[#14B8A6]">
+                      <span
+                        className={textPrimary}
+                        style={{ fontSize: "18px", fontWeight: 700 }}
+                      >
+                        TOTAL:
+                      </span>
+                      <span
+                        className="text-[#14B8A6]"
+                        style={{ fontSize: "24px", fontWeight: 700 }}
+                      >
+                        ${selectedVenta.total.toLocaleString("es-CO")}
+                      </span>
+                    </div>
+
+                    {selectedVenta.metodoPago === "Efectivo" && (
+                      <>
+                        <div className="flex justify-between pt-3 border-t border-gray-300 dark:border-gray-600">
+                          <span className={textSecondary}>Pagó con:</span>
+                          <span
+                            className={textPrimary}
+                            style={{ fontWeight: 600 }}
+                          >
+                            $
+                            {selectedVenta.montoPagado?.toLocaleString("es-CO")}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className={textSecondary}>Cambio:</span>
+                          <span
+                            className="text-green-500"
+                            style={{ fontWeight: 600 }}
+                          >
+                            ${selectedVenta.cambio?.toLocaleString("es-CO")}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <Button
+                      onClick={() => setModalDetalleOpen(false)}
+                      className={`${
+                        isDark
+                          ? "bg-gray-700 hover:bg-gray-600"
+                          : "bg-gray-200 hover:bg-gray-300"
+                      } ${textPrimary} rounded-xl h-12 px-8`}
+                      style={{ fontSize: "14px", fontWeight: 600 }}
+                    >
+                      Cerrar
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </ErrorBoundary>
         </DialogContent>
       </Dialog>
 

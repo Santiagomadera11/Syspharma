@@ -32,6 +32,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "../components/ui/dialog";
+import ErrorBoundary from "../components/ErrorBoundary";
 import {
   Select,
   SelectContent,
@@ -73,6 +74,7 @@ interface Pedido {
   id: string;
   codigo: string;
   fecha: Date;
+  clienteId?: string;
   tipoDocumento: string;
   numeroDocumento: string;
   cliente: string;
@@ -320,6 +322,7 @@ export default function Pedidos({ user }: PedidosProps) {
       const pedidosConFechas = storedPedidos.map((p) => ({
         id: p.id,
         codigo: `PED-${p.id.slice(0, 8)}`,
+        clienteId: (p as any).clienteId || undefined,
         fecha: new Date(p.fecha),
         tipoDocumento: "CC",
         numeroDocumento: "1234567890",
@@ -356,7 +359,7 @@ export default function Pedidos({ user }: PedidosProps) {
       const pedidosParaGuardar = pedidos.map((p) => ({
         id: p.id,
         fecha: p.fecha.toISOString(),
-        clienteId: p.id,
+        clienteId: (p as any).clienteId || p.id,
         clienteNombre: p.cliente,
         productos: p.productos.map((prod) => ({
           productoId: prod.id,
@@ -603,6 +606,13 @@ export default function Pedidos({ user }: PedidosProps) {
 
   // Abrir modal de edición
   const abrirModalEdicion = (pedido: Pedido) => {
+    // Diagnostic
+    // eslint-disable-next-line no-console
+    console.log("abrirModalEdicion invoked:", pedido?.id);
+    try {
+      toast.info("Abriendo editor de pedido...");
+    } catch (_e) {}
+
     setSelectedPedido(pedido);
     setFormData({
       tipoDocumento: pedido.tipoDocumento,
@@ -725,12 +735,26 @@ export default function Pedidos({ user }: PedidosProps) {
 
   // Ver detalle
   const verDetalle = (pedido: Pedido) => {
+    // Diagnostic
+    // eslint-disable-next-line no-console
+    console.log("verDetalle pedido invoked:", pedido?.id);
+    try {
+      toast.info("Abriendo detalle de pedido...");
+    } catch (_e) {}
+
     setSelectedPedido(pedido);
     setDetalleModalOpen(true);
   };
 
   // Abrir diálogo de eliminación
   const abrirDialogoEliminar = (pedido: Pedido) => {
+    // Diagnostic
+    // eslint-disable-next-line no-console
+    console.log("abrirDialogoEliminar invoked:", pedido?.id);
+    try {
+      toast.info("Abriendo confirmación de eliminación...");
+    } catch (_e) {}
+
     setSelectedPedido(pedido);
     setDeleteDialogOpen(true);
   };
@@ -819,6 +843,13 @@ export default function Pedidos({ user }: PedidosProps) {
 
   return (
     <div className={`min-h-screen ${bgPrimary} p-8`}>
+      {/* Debug banner: visible when edit/detail modal state is true */}
+      {(modalOpen || detalleModalOpen || deleteDialogOpen) && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] bg-yellow-400 text-black px-4 py-2 rounded-full shadow-lg">
+          modal states:{" "}
+          {`modalOpen=${modalOpen} detalleModalOpen=${detalleModalOpen} deleteDialogOpen=${deleteDialogOpen}`}
+        </div>
+      )}
       <div className="max-w-[1800px] mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -1634,237 +1665,249 @@ export default function Pedidos({ user }: PedidosProps) {
           className={`${bgCard} border-2 ${border} rounded-3xl`}
           style={{ maxWidth: "800px" }}
         >
-          {selectedPedido && (
-            <>
-              <DialogHeader>
-                <DialogTitle
-                  className={`${textPrimary}`}
-                  style={{ fontSize: "24px", fontWeight: 700 }}
-                >
-                  Detalle del Pedido
-                </DialogTitle>
-                <DialogDescription
-                  className={textSecondary}
-                  style={{ fontSize: "14px" }}
-                >
-                  {selectedPedido.codigo}
-                </DialogDescription>
-              </DialogHeader>
+          <ErrorBoundary>
+            {selectedPedido && (
+              <>
+                <DialogHeader>
+                  <DialogTitle
+                    className={`${textPrimary}`}
+                    style={{ fontSize: "24px", fontWeight: 700 }}
+                  >
+                    Detalle del Pedido
+                  </DialogTitle>
+                  <DialogDescription
+                    className={textSecondary}
+                    style={{ fontSize: "14px" }}
+                  >
+                    {selectedPedido.codigo}
+                  </DialogDescription>
+                </DialogHeader>
 
-              <div className="space-y-6 py-4">
-                {/* Info general */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-6 py-4">
+                  {/* Info general */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className={textSecondary} style={{ fontSize: "13px" }}>
+                        Cliente
+                      </p>
+                      <p
+                        className={textPrimary}
+                        style={{ fontSize: "16px", fontWeight: 600 }}
+                      >
+                        {selectedPedido.cliente}
+                      </p>
+                      <p className={textSecondary} style={{ fontSize: "12px" }}>
+                        {selectedPedido.tipoDocumento}:{" "}
+                        {selectedPedido.numeroDocumento}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className={textSecondary} style={{ fontSize: "13px" }}>
+                        Fecha
+                      </p>
+                      <p
+                        className={textPrimary}
+                        style={{ fontSize: "16px", fontWeight: 600 }}
+                      >
+                        {new Date(selectedPedido.fecha).toLocaleDateString(
+                          "es-ES"
+                        )}
+                      </p>
+                      <p className={textSecondary} style={{ fontSize: "12px" }}>
+                        {new Date(selectedPedido.fecha).toLocaleTimeString(
+                          "es-ES"
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Estado */}
                   <div>
                     <p className={textSecondary} style={{ fontSize: "13px" }}>
-                      Cliente
+                      Estado Actual
                     </p>
-                    <p
-                      className={textPrimary}
-                      style={{ fontSize: "16px", fontWeight: 600 }}
-                    >
-                      {selectedPedido.cliente}
-                    </p>
-                    <p className={textSecondary} style={{ fontSize: "12px" }}>
-                      {selectedPedido.tipoDocumento}:{" "}
-                      {selectedPedido.numeroDocumento}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className={textSecondary} style={{ fontSize: "13px" }}>
-                      Fecha
-                    </p>
-                    <p
-                      className={textPrimary}
-                      style={{ fontSize: "16px", fontWeight: 600 }}
-                    >
-                      {new Date(selectedPedido.fecha).toLocaleDateString(
-                        "es-ES"
-                      )}
-                    </p>
-                    <p className={textSecondary} style={{ fontSize: "12px" }}>
-                      {new Date(selectedPedido.fecha).toLocaleTimeString(
-                        "es-ES"
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Estado */}
-                <div>
-                  <p className={textSecondary} style={{ fontSize: "13px" }}>
-                    Estado Actual
-                  </p>
-                  <div className="mt-2">
-                    <span
-                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white ${getEstadoColor(
-                        selectedPedido.estado
-                      )}`}
-                      style={{ fontSize: "14px", fontWeight: 600 }}
-                    >
-                      {getEstadoIcon(selectedPedido.estado)}
-                      {selectedPedido.estado}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Productos */}
-                <div>
-                  <h4
-                    className={`${textPrimary} mb-3`}
-                    style={{ fontSize: "16px", fontWeight: 700 }}
-                  >
-                    Productos
-                  </h4>
-                  <div className="space-y-2">
-                    {selectedPedido.productos.map((producto) => (
-                      <div
-                        key={producto.id}
-                        className={`flex justify-between items-center p-3 rounded-xl ${
-                          isDark ? "bg-[#1a1d2e]" : "bg-gray-50"
-                        }`}
+                    <div className="mt-2">
+                      <span
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white ${getEstadoColor(
+                          selectedPedido.estado
+                        )}`}
+                        style={{ fontSize: "14px", fontWeight: 600 }}
                       >
-                        <div className="flex-1">
-                          <p
-                            className={textPrimary}
-                            style={{ fontSize: "14px", fontWeight: 600 }}
-                          >
-                            {producto.nombre}
-                          </p>
-                          <p
-                            className={textSecondary}
-                            style={{ fontSize: "12px" }}
-                          >
-                            {producto.cantidad} x $
-                            {producto.precioUnitario.toLocaleString("es-CO")}
-                            {producto.descuentoPorcentaje > 0 &&
-                              ` (-${producto.descuentoPorcentaje}%)`}
-                          </p>
-                        </div>
-                        <p
-                          className="text-[#14B8A6]"
-                          style={{ fontSize: "15px", fontWeight: 700 }}
-                        >
-                          ${producto.subtotal.toLocaleString("es-CO")}
-                        </p>
-                      </div>
-                    ))}
+                        {getEstadoIcon(selectedPedido.estado)}
+                        {selectedPedido.estado}
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Totales */}
-                <div
-                  className={`${
-                    isDark ? "bg-[#1a1d2e]" : "bg-gray-50"
-                  } rounded-2xl p-6 space-y-3`}
-                >
-                  <div className="flex justify-between">
-                    <span className={textSecondary}>Subtotal:</span>
-                    <span className={textPrimary} style={{ fontWeight: 600 }}>
-                      ${selectedPedido.subtotal.toLocaleString("es-CO")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={textSecondary}>Descuento:</span>
-                    <span className="text-red-500" style={{ fontWeight: 600 }}>
-                      -${selectedPedido.descuento.toLocaleString("es-CO")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={textSecondary}>IVA:</span>
-                    <span className={textPrimary} style={{ fontWeight: 600 }}>
-                      ${selectedPedido.iva.toLocaleString("es-CO")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between pt-3 border-t-2 border-[#14B8A6]">
-                    <span
-                      className={textPrimary}
-                      style={{ fontSize: "18px", fontWeight: 700 }}
-                    >
-                      TOTAL:
-                    </span>
-                    <span
-                      className="text-[#14B8A6]"
-                      style={{ fontSize: "24px", fontWeight: 700 }}
-                    >
-                      ${selectedPedido.total.toLocaleString("es-CO")}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Historial */}
-                <div>
-                  <h4
-                    className={`${textPrimary} mb-3`}
-                    style={{ fontSize: "16px", fontWeight: 700 }}
-                  >
-                    Historial de Estados
-                  </h4>
-                  <div className="space-y-2">
-                    {selectedPedido.historial.map((hist, idx) => (
-                      <div
-                        key={idx}
-                        className={`flex items-center gap-3 p-3 rounded-xl ${
-                          isDark ? "bg-[#1a1d2e]" : "bg-gray-50"
-                        }`}
-                      >
-                        <div
-                          className={`w-8 h-8 rounded-lg ${getEstadoColor(
-                            hist.estado
-                          )} flex items-center justify-center`}
-                        >
-                          {getEstadoIcon(hist.estado)}
-                        </div>
-                        <div className="flex-1">
-                          <p
-                            className={textPrimary}
-                            style={{ fontSize: "14px", fontWeight: 600 }}
-                          >
-                            {hist.estado}
-                          </p>
-                          <p
-                            className={textSecondary}
-                            style={{ fontSize: "12px" }}
-                          >
-                            {new Date(hist.fecha).toLocaleString("es-ES")}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Notas */}
-                {selectedPedido.notas && (
+                  {/* Productos */}
                   <div>
                     <h4
-                      className={`${textPrimary} mb-2`}
-                      style={{ fontSize: "14px", fontWeight: 700 }}
+                      className={`${textPrimary} mb-3`}
+                      style={{ fontSize: "16px", fontWeight: 700 }}
                     >
-                      Notas
+                      Productos
                     </h4>
-                    <p className={textSecondary} style={{ fontSize: "14px" }}>
-                      {selectedPedido.notas}
-                    </p>
+                    <div className="space-y-2">
+                      {selectedPedido.productos.map((producto) => (
+                        <div
+                          key={producto.id}
+                          className={`flex justify-between items-center p-3 rounded-xl ${
+                            isDark ? "bg-[#1a1d2e]" : "bg-gray-50"
+                          }`}
+                        >
+                          <div className="flex-1">
+                            <p
+                              className={textPrimary}
+                              style={{ fontSize: "14px", fontWeight: 600 }}
+                            >
+                              {producto.nombre}
+                            </p>
+                            <p
+                              className={textSecondary}
+                              style={{ fontSize: "12px" }}
+                            >
+                              {producto.cantidad} x $
+                              {producto.precioUnitario.toLocaleString("es-CO")}
+                              {producto.descuentoPorcentaje > 0 &&
+                                ` (-${producto.descuentoPorcentaje}%)`}
+                            </p>
+                          </div>
+                          <p
+                            className="text-[#14B8A6]"
+                            style={{ fontSize: "15px", fontWeight: 700 }}
+                          >
+                            ${producto.subtotal.toLocaleString("es-CO")}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                )}
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <Button
-                    onClick={() => setDetalleModalOpen(false)}
+                  {/* Totales */}
+                  <div
                     className={`${
-                      isDark
-                        ? "bg-gray-700 hover:bg-gray-600"
-                        : "bg-gray-200 hover:bg-gray-300"
-                    } ${textPrimary} rounded-xl h-12 px-8`}
-                    style={{ fontSize: "14px", fontWeight: 600 }}
+                      isDark ? "bg-[#1a1d2e]" : "bg-gray-50"
+                    } rounded-2xl p-6 space-y-3`}
                   >
-                    Cerrar
-                  </Button>
+                    <div className="flex justify-between">
+                      <span className={textSecondary}>Subtotal:</span>
+                      <span className={textPrimary} style={{ fontWeight: 600 }}>
+                        $
+                        {selectedPedido.subtotal?.toLocaleString("es-CO") ||
+                          "N/A"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className={textSecondary}>Descuento:</span>
+                      <span
+                        className="text-red-500"
+                        style={{ fontWeight: 600 }}
+                      >
+                        -$
+                        {selectedPedido.descuento?.toLocaleString("es-CO") ||
+                          "N/A"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className={textSecondary}>IVA:</span>
+                      <span className={textPrimary} style={{ fontWeight: 600 }}>
+                        ${selectedPedido.iva?.toLocaleString("es-CO") || "N/A"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between pt-3 border-t-2 border-[#14B8A6]">
+                      <span
+                        className={textPrimary}
+                        style={{ fontSize: "18px", fontWeight: 700 }}
+                      >
+                        TOTAL:
+                      </span>
+                      <span
+                        className="text-[#14B8A6]"
+                        style={{ fontSize: "24px", fontWeight: 700 }}
+                      >
+                        $
+                        {selectedPedido.total?.toLocaleString("es-CO") || "N/A"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Historial */}
+                  <div>
+                    <h4
+                      className={`${textPrimary} mb-3`}
+                      style={{ fontSize: "16px", fontWeight: 700 }}
+                    >
+                      Historial de Estados
+                    </h4>
+                    <div className="space-y-2">
+                      {selectedPedido.historial.map((hist, idx) => (
+                        <div
+                          key={idx}
+                          className={`flex items-center gap-3 p-3 rounded-xl ${
+                            isDark ? "bg-[#1a1d2e]" : "bg-gray-50"
+                          }`}
+                        >
+                          <div
+                            className={`w-8 h-8 rounded-lg ${getEstadoColor(
+                              hist.estado
+                            )} flex items-center justify-center`}
+                          >
+                            {getEstadoIcon(hist.estado)}
+                          </div>
+                          <div className="flex-1">
+                            <p
+                              className={textPrimary}
+                              style={{ fontSize: "14px", fontWeight: 600 }}
+                            >
+                              {hist.estado}
+                            </p>
+                            <p
+                              className={textSecondary}
+                              style={{ fontSize: "12px" }}
+                            >
+                              {hist.fecha
+                                ? new Date(hist.fecha).toLocaleString("es-ES")
+                                : "N/A"}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Notas */}
+                  {selectedPedido.notas && (
+                    <div>
+                      <h4
+                        className={`${textPrimary} mb-2`}
+                        style={{ fontSize: "14px", fontWeight: 700 }}
+                      >
+                        Notas
+                      </h4>
+                      <p className={textSecondary} style={{ fontSize: "14px" }}>
+                        {selectedPedido.notas}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <Button
+                      onClick={() => setDetalleModalOpen(false)}
+                      className={`${
+                        isDark
+                          ? "bg-gray-700 hover:bg-gray-600"
+                          : "bg-gray-200 hover:bg-gray-300"
+                      } ${textPrimary} rounded-xl h-12 px-8`}
+                      style={{ fontSize: "14px", fontWeight: 600 }}
+                    >
+                      Cerrar
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </ErrorBoundary>
         </DialogContent>
       </Dialog>
 

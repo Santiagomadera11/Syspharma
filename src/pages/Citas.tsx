@@ -507,7 +507,7 @@ export default function Citas({ user }: CitasProps) {
     setFechaSeleccionada(hoy);
   };
 
-  const getDiaNombre = (fecha: Date) => {
+  function getDiaNombre(fecha: Date) {
     const dias = [
       "Domingo",
       "Lunes",
@@ -518,7 +518,7 @@ export default function Citas({ user }: CitasProps) {
       "Sábado",
     ];
     return dias[fecha.getDay()];
-  };
+  }
 
   // Funciones para manejar días no disponibles
   const toggleDiaNoDisponible = (empleado: Empleado, fecha: Date) => {
@@ -1951,14 +1951,27 @@ export default function Citas({ user }: CitasProps) {
                             return (
                               <button
                                 key={hora}
-                                onClick={() =>
-                                  empleadoSeleccionado &&
-                                  toggleHorarioDisponibilidad(
-                                    empleadoSeleccionado,
-                                    dia,
-                                    hora
-                                  )
-                                }
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (!canEditAvailability) {
+                                    toast.error(
+                                      "No tienes permiso para modificar horarios",
+                                      {
+                                        duration: 2000,
+                                      }
+                                    );
+                                    return;
+                                  }
+                                  if (empleadoSeleccionado) {
+                                    toggleHorarioDisponibilidad(
+                                      empleadoSeleccionado,
+                                      dia,
+                                      hora
+                                    );
+                                  }
+                                }}
                                 className={`h-10 rounded-lg transition-all duration-200 ${
                                   estaDisponible
                                     ? "bg-[#14B8A6] text-white hover:bg-[#0D9488]"

@@ -234,7 +234,7 @@ export default function MisCitas({ user }: MisCitasProps) {
   // ✅ Usar hooks globales para sincronización automática
   const { items: todasCitas, add: addCita } = useCitas();
   const { items: servicios } = useServicios();
-  const { items: usuarios } = useUsuarios();
+  const { items: usuarios, update: updateUsuario } = useUsuarios();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState<string>("todos");
@@ -309,6 +309,37 @@ export default function MisCitas({ user }: MisCitasProps) {
     setModalOpen(true);
   };
 
+  // Mostrar notificaciones pendientes para el cliente actual (si existen)
+  // y marcarlas como leídas en storage.
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("syspharma_user");
+      if (!stored) return;
+      const current = JSON.parse(stored);
+      const usuario = usuarios.find(
+        (u: any) => String(u.id) === String(current.id)
+      );
+      if (!usuario) return;
+      // @ts-ignore
+      const notifs = usuario.notificaciones || [];
+      const pendientes = notifs.filter((n: any) => !n.read);
+      if (pendientes.length === 0) return;
+
+      // Mostrar un toast por cada notificación pendiente
+      pendientes.forEach((n: any) => {
+        // @ts-ignore sonner
+        toast.success(n.message);
+      });
+
+      // Marcar como leídas
+      const marcadas = notifs.map((n: any) => ({ ...n, read: true }));
+      // @ts-ignore
+      updateUsuario(usuario.id, { notificaciones: marcadas });
+    } catch (err) {
+      console.warn("Error al procesar notificaciones del usuario:", err);
+    }
+  }, [usuarios, updateUsuario]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -323,14 +354,11 @@ export default function MisCitas({ user }: MisCitasProps) {
       return;
     }
 
-    // Asignar automáticamente la primera hora disponible
-    const horaAsignada =
-      horasDisponibles.length > 0 ? horasDisponibles[0] : "08:00";
-
+    // No asignar hora automáticamente; los administradores/empleados asignarán la hora.
     const nuevaCita = {
       id: `CITA-${Date.now()}`,
-      fecha: `${formData.fecha}T${horaAsignada}:00`,
-      hora: horaAsignada,
+      fecha: `${formData.fecha}`,
+      hora: "",
       clienteId: user?.id || "",
       clienteNombre: user?.nombre || "",
       servicioId: formData.servicioId,
@@ -569,10 +597,12 @@ export default function MisCitas({ user }: MisCitasProps) {
                           style={{ fontSize: "13px" }}
                         >
                           {fecha.toLocaleDateString("es-ES")} -{" "}
-                          {fecha.toLocaleTimeString("es-ES", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {/* Mostrar hora asignada o indicador por asignar */}
+                          {cita.hora && cita.hora.trim() !== "" ? (
+                            <span>{cita.hora}</span>
+                          ) : (
+                            <span className="italic text-sm">por asignar</span>
+                          )}
                         </p>
                       </div>
                     </div>
@@ -602,6 +632,14 @@ export default function MisCitas({ user }: MisCitasProps) {
                     <p className={textSecondary} style={{ fontSize: "12px" }}>
                       SysPharma - Sede Principal
                     </p>
+                    <div className="ml-3 text-sm">
+                      <p className={textSecondary} style={{ fontSize: "12px" }}>
+                        Médico:{" "}
+                        {cita.empleadoNombre || cita.medicoNombre || (
+                          <span className="italic">por asignar</span>
+                        )}
+                      </p>
+                    </div>
                   </div>
                   <Button
                     onClick={() => {
@@ -686,10 +724,12 @@ export default function MisCitas({ user }: MisCitasProps) {
                         <div className="flex items-center gap-2 mt-1">
                           <Clock className={`w-4 h-4 ${textSecondary}`} />
                           <p className={textSecondary}>
-                            {fecha.toLocaleTimeString("es-ES", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            {selectedCita.hora &&
+                            selectedCita.hora.trim() !== "" ? (
+                              selectedCita.hora
+                            ) : (
+                              <span className="italic">por asignar</span>
+                            )}
                           </p>
                         </div>
                       </div>
@@ -749,16 +789,16 @@ export default function MisCitas({ user }: MisCitasProps) {
                       )}
                     </div>
 
-                    {/* Información del Médico */}
-                    {medico && (
-                      <div>
-                        <h3
-                          className={`${textPrimary} font-semibold mb-3 flex items-center`}
-                          style={{ fontSize: "18px" }}
-                        >
-                          <User className="w-5 h-5 mr-2 text-[#63E6BE]" />
-                          Médico Asignado
-                        </h3>
+                    {/* Información del Médico (si no hay, mostrar 'por asignar') */}
+                    <div>
+                      <h3
+                        className={`${textPrimary} font-semibold mb-3 flex items-center`}
+                        style={{ fontSize: "18px" }}
+                      >
+                        <User className="w-5 h-5 mr-2 text-[#63E6BE]" />
+                        Médico
+                      </h3>
+                      {medico ? (
                         <div
                           className={`p-4 rounded-xl border ${border} flex items-center gap-4`}
                         >
@@ -787,8 +827,14 @@ export default function MisCitas({ user }: MisCitasProps) {
                             )}
                           </div>
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div className={`p-4 rounded-xl border ${border}`}>
+                          <p className={textSecondary}>
+                            <span className="italic">por asignar</span>
+                          </p>
+                        </div>
+                      )}
+                    </div>
 
                     {/* Notas */}
                     {selectedCita.notas && (
