@@ -706,6 +706,8 @@ export default function Citas({ user }: CitasProps) {
         setErrors({ ...errors, empleadoId: validateEmpleado(value) });
       } else if (field === "servicio") {
         setErrors({ ...errors, servicio: validateServicio(value) });
+      } else if (field === "hora") {
+        setErrors({ ...errors, hora: validateHora(value) });
       }
     }
   };
@@ -716,7 +718,7 @@ export default function Citas({ user }: CitasProps) {
       !formData.cliente ||
       !formData.empleadoId ||
       !formData.servicio ||
-      !formData.fecha
+      !formData.hora
     )
       return false;
 
@@ -724,8 +726,15 @@ export default function Citas({ user }: CitasProps) {
     const clienteError = validateCliente(formData.cliente);
     const empleadoError = validateEmpleado(formData.empleadoId);
     const servicioError = validateServicio(formData.servicio);
+    const horaError = validateHora(formData.hora);
 
-    return !codigoError && !clienteError && !empleadoError && !servicioError;
+    return (
+      !codigoError &&
+      !clienteError &&
+      !empleadoError &&
+      !servicioError &&
+      !horaError
+    );
   };
 
   const openCreateModal = () => {
@@ -745,12 +754,14 @@ export default function Citas({ user }: CitasProps) {
       cliente: "",
       empleadoId: "",
       servicio: "",
+      hora: "",
     });
     setTouched({
       codigo: false,
       cliente: false,
       empleadoId: false,
       servicio: false,
+      hora: false,
     });
     // Limpiar campos de documento
     setTipoDocumento("");
@@ -775,12 +786,14 @@ export default function Citas({ user }: CitasProps) {
       cliente: "",
       empleadoId: "",
       servicio: "",
+      hora: "",
     });
     setTouched({
       codigo: false,
       cliente: false,
       empleadoId: false,
       servicio: false,
+      hora: false,
     });
     // Limpiar campos de documento
     setTipoDocumento("");
@@ -851,16 +864,10 @@ export default function Citas({ user }: CitasProps) {
     } else {
       // Crear nueva cita
       const servicio = servicios.find((s) => s.id === formData.servicio);
-      // Asignar automáticamente la primera hora disponible
-      const horaAutomatica =
-        horasDisponiblesParaFecha.length > 0
-          ? horasDisponiblesParaFecha[0]
-          : "08:00"; // Hora por defecto si no hay disponibilidad
-
       const nuevaCita = {
         id: `CITA-${Date.now()}`,
         fecha: fechaAString(formData.fecha),
-        hora: horaAutomatica,
+        hora: formData.hora,
         clienteId: formData.cliente,
         clienteNombre: formData.cliente,
         empleadoId: formData.empleadoId,
@@ -2523,7 +2530,52 @@ export default function Citas({ user }: CitasProps) {
               />
             </div>
 
-            {/* Hora será asignada automáticamente al sistema */}
+            {/* 🔴 Selector de horarios - Solo muestra horas NO reservadas */}
+            <div>
+              <label
+                className={`block ${textPrimary} mb-3`}
+                style={{ fontSize: "13px", fontWeight: 600 }}
+              >
+                Hora Disponible *
+                {horasDisponiblesParaFecha.length === 0 && (
+                  <span className="text-red-500 text-xs ml-2">
+                    (No hay horas disponibles)
+                  </span>
+                )}
+              </label>
+              <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto p-2">
+                {horasDisponiblesParaFecha.map((hora) => (
+                  <button
+                    key={hora}
+                    type="button"
+                    onClick={() => handleChange("hora", hora)}
+                    className={`h-11 rounded-xl transition-all duration-200 ${
+                      formData.hora === hora
+                        ? "bg-[#63E6BE] text-white shadow-lg scale-105"
+                        : `${
+                            isDark
+                              ? "bg-[#161b22] hover:bg-[#1f6feb1a] text-white"
+                              : "bg-white hover:bg-[#63E6BE]/10 text-[#3D4756]"
+                          } border-2 ${border} hover:border-[#63E6BE]`
+                    }`}
+                    style={{ fontSize: "13px", fontWeight: 600 }}
+                  >
+                    {hora}
+                  </button>
+                ))}
+              </div>
+              {horasDisponiblesParaFecha.length === 0 && (
+                <p className="text-amber-600 mt-2 text-sm flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  Todas las horas están reservadas para esta fecha
+                </p>
+              )}
+              {touched.hora && errors.hora && (
+                <p className="text-red-500 mt-1.5" style={{ fontSize: "12px" }}>
+                  {errors.hora}
+                </p>
+              )}
+            </div>
 
             {selectedCita && (
               <div>

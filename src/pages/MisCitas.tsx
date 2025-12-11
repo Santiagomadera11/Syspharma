@@ -312,7 +312,7 @@ export default function MisCitas({ user }: MisCitasProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.fecha || !formData.hora || !formData.servicioId) {
+    if (!formData.fecha || !formData.servicioId) {
       toast.error("Por favor completa todos los campos requeridos");
       return;
     }
@@ -323,10 +323,14 @@ export default function MisCitas({ user }: MisCitasProps) {
       return;
     }
 
+    // Asignar automáticamente la primera hora disponible
+    const horaAsignada =
+      horasDisponibles.length > 0 ? horasDisponibles[0] : "08:00";
+
     const nuevaCita = {
       id: `CITA-${Date.now()}`,
-      fecha: `${formData.fecha}T${formData.hora}:00`,
-      hora: formData.hora,
+      fecha: `${formData.fecha}T${horaAsignada}:00`,
+      hora: horaAsignada,
       clienteId: user?.id || "",
       clienteNombre: user?.nombre || "",
       servicioId: formData.servicioId,
@@ -893,43 +897,6 @@ export default function MisCitas({ user }: MisCitasProps) {
                 />
               </div>
             </div>
-
-            {/* Hora */}
-            {formData.fecha && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <label className={`block ${textPrimary} mb-2 font-semibold`}>
-                  Selecciona una Hora *
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {horasDisponibles.length === 0 ? (
-                    <p
-                      className={`${textSecondary} col-span-4 text-center py-4`}
-                    >
-                      No hay horas disponibles para esta fecha
-                    </p>
-                  ) : (
-                    horasDisponibles.map((hora) => (
-                      <button
-                        key={hora}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, hora })}
-                        className={`p-3 rounded-xl border-2 transition-all duration-200 ${
-                          formData.hora === hora
-                            ? "bg-[#63E6BE] border-[#63E6BE] text-white"
-                            : `${border} hover:border-[#63E6BE] ${textPrimary}`
-                        }`}
-                      >
-                        <Clock className="w-4 h-4 mx-auto mb-1" />
-                        <span className="text-sm font-semibold">{hora}</span>
-                      </button>
-                    ))
-                  )}
-                </div>
-              </motion.div>
-            )}
 
             {/* Servicio */}
             <div>
