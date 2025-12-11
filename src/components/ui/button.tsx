@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot@1.1.2";
+import { toast } from "sonner";
 import { cva, type VariantProps } from "class-variance-authority@0.7.1";
 
 import { cn } from "./utils";
@@ -31,7 +32,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  },
+  }
 );
 
 const Button = React.forwardRef<
@@ -43,12 +44,52 @@ const Button = React.forwardRef<
 >(({ className, variant, size, asChild = false, ...props }, ref) => {
   const Comp = asChild ? Slot : "button";
 
+  // If we're rendering a real <button>, ensure it defaults to type="button"
+  // to avoid accidental form submissions when placed inside forms.
+  const finalProps = React.useMemo(() => {
+    const base = asChild
+      ? { ...(props as any) }
+      : ({ type: (props as any).type ?? "button", ...(props as any) } as any);
+
+    // Wrap onClick to avoid uncaught exceptions bubbling to the app root
+    if (base.onClick) {
+      const original = base.onClick;
+      base.onClick = (e: any) => {
+        try {
+          const res = original(e);
+          // If the handler returned a promise, handle rejections
+          if (res && typeof res.then === "function") {
+            res.catch((err: any) => {
+              // eslint-disable-next-line no-console
+              console.error("Button onClick async error:", err);
+              try {
+                toast.error("Ocurrió un error al ejecutar la acción");
+              } catch (_err) {}
+            });
+          }
+          return res;
+        } catch (err) {
+          // Log and show a friendly toast instead of letting the app crash
+          // eslint-disable-next-line no-console
+          console.error("Button onClick error:", err);
+          try {
+            toast.error("Ocurrió un error al ejecutar la acción");
+          } catch (_err) {
+            /* ignore */
+          }
+        }
+      };
+    }
+
+    return base as typeof props;
+  }, [asChild, props]);
+
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
       ref={ref}
-      {...props}
+      {...finalProps}
     />
   );
 });
